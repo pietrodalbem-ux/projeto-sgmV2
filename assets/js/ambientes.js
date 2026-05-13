@@ -1,0 +1,271 @@
+// Caminhos corretos baseados na sua estrutura de pastas
+const URL_API_AMBIENTE = 'api/ambientes.php'; 
+const URL_API_BLOCO = 'api/api_bloco.php'; 
+
+document.addEventListener("DOMContentLoaded", () => {
+    listarAmbientes();
+    listarBlocosParaSelect();
+});
+
+// ==========================================
+// FUNÇÕES DE AMBIENTE
+// ==========================================
+
+async function listarAmbientes() {
+    try {
+        const response = await fetch(URL_API_AMBIENTE);
+        const result = await response.json();
+        const tbody = document.getElementById('tabelaAmbientesBody');
+        tbody.innerHTML = '';
+
+        if (result.success) {
+            result.data.forEach(ambiente => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${ambiente.id_ambiente}</td>
+                        <td>${ambiente.nome}</td>
+                        <td>${ambiente.nome_bloco}</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-warning me-2" onclick="abrirModalEditar(${ambiente.id_ambiente}, '${ambiente.nome}', ${ambiente.id_bloco})">
+                                <i class="bi bi-pencil-square"></i> Editar
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="excluirAmbiente(${ambiente.id_ambiente})">
+                                <i class="bi bi-trash"></i> Excluir
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        } else {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">${result.message}</td></tr>`;
+        }
+    } catch (error) {
+        console.error("Erro ao buscar ambientes:", error);
+    }
+}
+
+async function criarAmbiente() {
+    const nome = document.getElementById('nomeAmbiente').value;
+    const id_bloco = document.getElementById('blocoAmbiente').value;
+
+    if (!nome || !id_bloco) {
+        alert("Preencha o nome e selecione o bloco!");
+        return;
+    }
+
+    try {
+        const response = await fetch(URL_API_AMBIENTE, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome: nome, id_bloco: id_bloco })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            alert(result.message);
+            document.getElementById('formCriarAmbiente').reset();
+            document.getElementById('closeModalAmbiente').click();
+            listarAmbientes();
+        } else {
+            alert("Erro: " + result.message);
+        }
+    } catch (error) {
+        console.error("Erro:", error);
+    }
+}
+
+async function excluirAmbiente(id_ambiente) {
+    if (confirm("Deseja realmente excluir este ambiente?")) {
+        try {
+            const response = await fetch(URL_API_AMBIENTE, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id_ambiente: id_ambiente })
+            });
+            const result = await response.json();
+            if (result.success) {
+                listarAmbientes();
+            } else {
+                alert("Erro: " + result.message);
+            }
+        } catch (error) {
+            console.error("Erro:", error);
+        }
+    }
+}
+
+// ==========================================
+// FUNÇÕES DE EDIÇÃO DE AMBIENTE (NOVO)
+// ==========================================
+
+// Função que preenche o modal com os dados atuais e o abre
+function abrirModalEditar(id, nome, id_bloco) {
+    document.getElementById('editIdAmbiente').value = id;
+    document.getElementById('editNomeAmbiente').value = nome;
+    document.getElementById('editBlocoAmbiente').value = id_bloco;
+    
+    // Mostra o modal usando o Bootstrap via JavaScript
+    const modal = new bootstrap.Modal(document.getElementById('modalEditarAmbiente'));
+    modal.show();
+}
+
+// Função que envia as alterações para o banco via PUT
+async function salvarEdicaoAmbiente() {
+    const id = document.getElementById('editIdAmbiente').value;
+    const nome = document.getElementById('editNomeAmbiente').value;
+    const id_bloco = document.getElementById('editBlocoAmbiente').value;
+
+    if (!nome || !id_bloco) {
+        alert("Preencha todos os campos para atualizar!");
+        return;
+    }
+
+    try {
+        const response = await fetch(URL_API_AMBIENTE, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id_ambiente: id, nome: nome, id_bloco: id_bloco })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            alert(result.message);
+            document.getElementById('closeModalEditarAmbiente').click(); // Fecha o modal
+            
+            // Remove as sobras do backdrop do Bootstrap (caso o modal trave a tela)
+            const backdrop = document.querySelector('.modal-backdrop');
+            if(backdrop) backdrop.remove();
+            
+            listarAmbientes(); // Atualiza a tabela com o novo nome
+        } else {
+            alert("Erro: " + result.message);
+        }
+    } catch (error) {
+        console.error("Erro ao atualizar ambiente:", error);
+    }
+}
+
+// ==========================================
+// FUNÇÕES DE BLOCO
+// ==========================================
+
+async function listarBlocosParaSelect() {
+    try {
+        const response = await fetch(URL_API_BLOCO);
+        const result = await response.json();
+        const selectCriar = document.getElementById('blocoAmbiente');
+        const selectEditar = document.getElementById('editBlocoAmbiente'); // Select do modal de edição
+        
+        const optionDefault = '<option value="" selected disabled>Selecione o bloco</option>';
+        selectCriar.innerHTML = optionDefault;
+        selectEditar.innerHTML = optionDefault;
+
+        if (result.success && result.data) {
+            result.data.forEach(bloco => {
+                const optionHtml = `<option value="${bloco.id_bloco}">${bloco.nome}</option>`;
+                selectCriar.innerHTML += optionHtml;
+                selectEditar.innerHTML += optionHtml;
+            });
+        }
+    } catch (error) {
+        console.error("Erro ao buscar blocos:", error);
+    }
+}
+
+async function criarBloco() {
+    const nome = document.getElementById('nomeBloco').value;
+    const descricao = document.getElementById('descBloco').value;
+
+    if (!nome) {
+        alert("Preencha o nome do bloco!");
+        return;
+    }
+
+    try {
+        const response = await fetch(URL_API_BLOCO, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome: nome, descricao: descricao })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            alert(result.message);
+            document.getElementById('formCriarBloco').reset();
+            document.getElementById('closeModalBloco').click();
+            listarBlocosParaSelect(); 
+        } else {
+            alert("Erro: " + result.message);
+        }
+    } catch (error) {
+        console.error("Erro:", error);
+    }
+}
+
+// ==========================================
+// FUNÇÕES DE GERENCIAMENTO DE BLOCOS (EXCLUIR)
+// ==========================================
+
+// Abre o modal e lista todos os blocos na tabela interna dele
+async function abrirModalGerenciarBlocos() {
+    try {
+        const response = await fetch(URL_API_BLOCO);
+        const result = await response.json();
+        const tbody = document.getElementById('listaBlocosBody');
+        tbody.innerHTML = '';
+
+        if (result.success && result.data) {
+            result.data.forEach(bloco => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="text-muted">${bloco.id_bloco}</td>
+                        <td class="fw-medium">${bloco.nome}</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-danger lixo" onclick="excluirBloco(${bloco.id_bloco})">
+                                <i class="bi bi-trash text-danger " ></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        } else {
+            tbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted">Nenhum bloco encontrado.</td></tr>`;
+        }
+        
+        // Abre o modal
+        const modal = new bootstrap.Modal(document.getElementById('modalGerenciarBlocos'));
+        modal.show();
+    } catch (error) {
+        console.error("Erro ao buscar blocos para gerenciamento:", error);
+    }
+}
+
+// Envia a requisição DELETE para a API
+async function excluirBloco(id_bloco) {
+    // AVISO IMPORTANTE: Explicar ao usuário sobre a exclusão em cascata
+    const confirmacao = confirm(
+        "🚨 ATENÇÃO: Excluir este bloco apagará AUTOMATICAMENTE todos os ambientes vinculados a ele!\n\nTem certeza absoluta que deseja excluir?"
+    );
+
+    if (confirmacao) {
+        try {
+            const response = await fetch(URL_API_BLOCO, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id_bloco: id_bloco })
+            });
+            const result = await response.json()
+            
+            if (result.success) {
+                // Se der certo, precisamos atualizar 3 coisas na tela:
+                abrirModalGerenciarBlocos(); // 1. A listagem de blocos dentro do próprio modal
+                listarBlocosParaSelect();    // 2. Os <selects> de criar/editar ambiente para sumir com o bloco apagado
+                listarAmbientes();           // 3. A tabela principal, já que os ambientes desse bloco foram apagados pelo banco
+            } else {
+                alert("Erro: " + result.message);
+            }
+        } catch (error) {
+            console.error("Erro ao excluir bloco:", error);
+        }
+    }
+}

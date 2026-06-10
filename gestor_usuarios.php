@@ -23,6 +23,7 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
                 <li class="nav-item"><a href="gestor_dashboard.php" class="nav-link"><i class="ph ph-chart-line"></i><span>Dashboard</span></a></li>
                 <li class="nav-item"><a href="gestor_chamados.php" class="nav-link"><i class="ph ph-list-bullets"></i><span>Chamados</span></a></li>
                 <li class="nav-item"><a href="gestor_ambientes.php" class="nav-link"><i class="ph ph-buildings"></i><span>Ambientes</span></a></li>
+                <li class="nav-item"><a href="gestor_tecnicos.php" class="nav-link"><i class="ph ph-wrench"></i><span>Técnicos</span></a></li>
                 <li class="nav-item"><a href="gestor_usuarios.php" class="nav-link active"><i class="ph ph-users"></i><span>Usuários</span></a></li>
             </ul>
 
@@ -138,28 +139,31 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
         });
 
         async function carregarUsuarios() {
-            const res = await fetch('api/usuarios.php?acao=listar');
-            const users = await res.json();
+            const { success, data: users, message } = sgmAsList(await sgmFetch('api/usuarios.php?acao=listar'));
+            if (!success) { alert(message); return; }
             const body = document.getElementById('listaUsuarios');
             body.innerHTML = users.map(u => `
                 <tr>
-                    <td class="fw-bold">${u.nome}</td>
-                    <td>${u.email}</td>
-                    <td class="text-capitalize small">${u.perfil}</td>
-                    <td>
-                        <span class="badge ${u.ativo == 1 ? 'status-concluido' : 'status-urgente'}">
-                            ${u.ativo == 1 ? 'ATIVO' : 'INATIVO'}
-                        </span>
-                    </td>
-                    <td class="text-center d-flex gap-2 justify-content-center">
-                        <button class="btn btn-sm btn-light" onclick='editarUsuario(${JSON.stringify(u)})'>
-                            <i class="ph ph-pencil-simple"></i>
-                        </button>
-                        <button class="btn btn-sm ${u.ativo == 1 ? 'btn-outline-danger' : 'btn-outline-success'}" onclick="toggleStatus(${u.id_usuario}, ${u.ativo})">
-                            <i class="ph ${u.ativo == 1 ? 'ph-user-minus' : 'ph-user-plus'} text-black"></i>
-                        </button>
-                    </td>
-                </tr>
+    <td class="fw-bold">${u.nome}</td>
+    <td>${u.email}</td>
+    <td class="text-capitalize small">${u.perfil}</td>
+    <td>
+        <span class="badge ${u.ativo == 1 ? 'status-concluido' : 'status-urgente'}">
+            ${u.ativo == 1 ? 'ATIVO' : 'INATIVO'}
+        </span>
+    </td>
+    <td class="text-center d-flex gap-2 justify-content-center">
+        <button class="btn btn-sm btn-light" onclick='editarUsuario(${JSON.stringify(u)})'>
+            <i class="ph ph-pencil-simple text-black"></i>
+        </button>
+        <button class="btn btn-sm ${u.ativo == 1 ? 'btn-outline-danger' : 'btn-outline-success'}" onclick="toggleStatus(${u.id_usuario}, ${u.ativo})">
+            <i class="ph ${u.ativo == 1 ? 'ph-user-minus' : 'ph-user-plus'} text-black"></i>
+        </button>
+        <button class="btn btn-sm btn-outline-danger" onclick="excluirUsuario(${u.id_usuario}, '${u.nome.replace(/'/g, "\\'")}')" title="Excluir">
+            <i class="ph ph-trash"></i>
+        </button>
+    </td>
+</tr>
             `).join('');
         }
 
@@ -183,8 +187,7 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
             e.preventDefault();
             const formData = new FormData(e.target);
             formData.append('acao', 'salvar');
-            const res = await fetch('api/usuarios.php', { method: 'POST', body: formData });
-            const data = await res.json();
+            const data = await sgmFetch('api/usuarios.php', { method: 'POST', body: formData });
             if(data.success) {
                 modal.hide();
                 carregarUsuarios();
@@ -198,8 +201,26 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
             formData.append('acao', 'toggle_status');
             formData.append('id_usuario', id);
             formData.append('ativo', current);
-            const res = await fetch('api/usuarios.php', { method: 'POST', body: formData });
+            await sgmFetch('api/usuarios.php', { method: 'POST', body: formData });
             carregarUsuarios();
+        }
+
+        async function excluirUsuario(id, nome) {
+            if (!confirm(`Tem certeza que deseja excluir o usuário "${nome}"? Esta ação não pode ser desfeita.`)) return;
+            const fd = new FormData();
+            fd.append('acao', 'excluir');
+            fd.append('id_usuario', id);
+            const data = await sgmFetch('api/usuarios.php', { method: 'POST', body: fd });
+            if (data.success) {
+                carregarUsuarios();
+            } else if (data.chamados_vinculados && data.chamados_vinculados.length) {
+                const lista = data.chamados_vinculados.map(c =>
+                    `#${c.id_chamado} - ${c.descricao_problema.substring(0, 40)}... (${c.status}, vínculo: ${c.vinculo})`
+                ).join('\n');
+                alert(`${data.message}\n\nChamados vinculados:\n${lista}`);
+            } else {
+                alert(data.message);
+            }
         }
     </script>
 </body>

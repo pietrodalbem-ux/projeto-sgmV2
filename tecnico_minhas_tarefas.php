@@ -70,8 +70,13 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
         async function carregarTarefas() {
             const container = document.getElementById('listaTarefas');
             try {
-                const res = await fetch(`api/gestor_chamados.php?id_tecnico=<?= $id_logado ?>`);
-                const tarefas = await res.json();
+                const json = await sgmFetch(`api/gestor_chamados.php?id_tecnico=<?= $id_logado ?>`);
+                const { success, data: tarefas, message } = sgmAsList(json);
+
+                if (!success) {
+                    container.innerHTML = `<div class="col-12"><div class="alert alert-danger">${message}</div></div>`;
+                    return;
+                }
 
                 if (tarefas.length === 0) {
                     container.innerHTML = `

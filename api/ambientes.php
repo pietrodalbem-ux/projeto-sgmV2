@@ -56,31 +56,27 @@ switch ($method){
         break;
     case 'DELETE':
         $data = json_decode(file_get_contents("php://input"));
-        if(!isset($data->id_ambiente)){
+        if (!isset($data->id_ambiente)) {
             echo json_encode(["success" => false, "message" => "Dados incompletos para deletar."]);
             exit;
         }
-        
+
         $id_ambiente = (int)$data->id_ambiente;
-        
-        // Tenta deletar capturando possíveis erros do banco de dados (como restrição de chaves)
-        try {
-            $sql = "DELETE FROM ambientes WHERE id_ambiente = $id_ambiente";
-            if($conn->query($sql) === TRUE){
-                echo json_encode(["success" => true, "message" => "Ambiente deletado com sucesso!"]);
-            } else {
-                echo json_encode(["success" => false, "message" => "Erro ao deletar ambientes: " . $conn->error]);
-            }
-        } catch (Exception $e) {
-            // O código 1451 significa que o banco barrou por causa de uma chave estrangeira
-            if ($e->getCode() == 1451) {
-                echo json_encode([
-                    "success" => false, 
-                    "message" => "Este ambiente NÃO pode ser excluído pois existem chamados históricos vinculados a ele."
-                ]);
-            } else {
-                echo json_encode(["success" => false, "message" => "Erro interno no banco: " . $e->getMessage()]);
-            }
+        $vinculados = $conn->query("SELECT id_chamado, descricao_problema, status, prioridade FROM chamados WHERE id_ambiente = $id_ambiente ORDER BY id_chamado DESC");
+
+        if ($vinculados && $vinculados->num_rows > 0) {
+            echo json_encode([
+                "success" => false,
+                "message" => "Este ambiente não pode ser excluído pois possui chamados vinculados.",
+                "chamados_vinculados" => $vinculados->fetch_all(MYSQLI_ASSOC)
+            ]);
+            exit;
+        }
+
+        if ($conn->query("DELETE FROM ambientes WHERE id_ambiente = $id_ambiente")) {
+            echo json_encode(["success" => true, "message" => "Ambiente excluído com sucesso!"]);
+        } else {
+            echo json_encode(["success" => false, "message" => "Erro ao deletar ambiente: " . $conn->error]);
         }
         break;
     default:

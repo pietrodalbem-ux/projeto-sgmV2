@@ -4,12 +4,12 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_perfil'] !== 'solicitante') 
     header("Location: login.php");
     exit;
 }
-include 'layout/head.php'; 
 $nome_exibicao = $_SESSION['user_nome'];
 $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
+<?php include 'layout/head.php'; ?>
 <body>
     <div class="app-container">
         <!-- Sidebar -->
@@ -80,6 +80,7 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
                                     <th>Descrição</th>
                                     <th>Data</th>
                                     <th>Status</th>
+                                    <th class="text-center">Ações</th>
                                 </tr>
                             </thead>
                             <tbody id="tabelaChamados">
@@ -113,8 +114,13 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
         async function carregarChamados() {
             const lista = document.getElementById('tabelaChamados');
             try {
-                const response = await fetch('api/chamados.php');
-                const chamados = await response.json();
+                const json = await sgmFetch('api/chamados.php');
+                const { success, data: chamados, message } = sgmAsList(json);
+
+                if (!success) {
+                    lista.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-danger">${message}</td></tr>`;
+                    return;
+                }
                 
                 const statusStyles = {
                     'aberto': 'status-aberto',
@@ -126,7 +132,7 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
 
 
                 if (chamados.length === 0) {
-                    lista.innerHTML = '<tr><td colspan="6" class="text-center py-5 text-muted">Nenhum chamado encontrado.</td></tr>';
+                    lista.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-muted">Nenhum chamado encontrado.</td></tr>';
                     return;
                 }
 
@@ -135,6 +141,10 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
                         `<img src="${c.thumbnail}" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover; cursor: pointer;" onclick="verFoto('${c.thumbnail}')">` :
                         '<div style="width: 40px; height: 40px; background: var(--bg-main); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--text-muted);"><i class="ph ph-image"></i></div>';
 
+                    const acoesAberto = c.status === 'aberto' ? `
+                        <a href="solicitante_editar_chamado.php?id=${c.id_chamado}" class="btn btn-sm btn-warning" title="Editar"><i class="ph ph-pencil-simple"></i></a>
+                        <button class="btn btn-sm btn-danger" title="Excluir" onclick="excluirChamado(${c.id_chamado})"><i class="ph ph-trash"></i></button>` : '';
+
                     return `<tr>
                         <td class="fw-bold text-muted">#${c.id_chamado}</td>
                         <td>${thumbHtml}</td>
@@ -142,6 +152,10 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
                         <td class="text-truncate" style="max-width: 200px;">${c.descricao_problema}</td>
                         <td>${new Date(c.data_abertura).toLocaleDateString()}</td>
                         <td><span class="badge ${statusStyles[c.status] || 'status-aberto'}">${c.status.toUpperCase().replace('_', ' ')}</span></td>
+                        <td class="text-center">
+                            <a href="solicitante_visualizar.php?id=${c.id_chamado}" class="btn btn-sm btn-light" title="Visualizar"><i class="ph ph-eye"></i></a>
+                            ${acoesAberto}
+                        </td>
                     </tr>`;
                 }).join('');
             } catch (error) {
@@ -151,6 +165,20 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
         }
 
         
+        async function excluirChamado(id) {
+            if (!confirm('Tem certeza que deseja excluir este chamado? Esta ação não pode ser desfeita.')) return;
+            const data = await sgmFetch('api/chamados.php', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id_chamado: id })
+            });
+            if (data.success) {
+                carregarChamados();
+            } else {
+                alert(data.message);
+            }
+        }
+
         carregarChamados();
     </script>
 </body>

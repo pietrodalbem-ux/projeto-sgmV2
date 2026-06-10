@@ -39,6 +39,12 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a href="gestor_tecnicos.php" class="nav-link">
+                        <i class="ph ph-wrench"></i>
+                        <span>Técnicos</span>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a href="gestor_usuarios.php" class="nav-link">
                         <i class="ph ph-users"></i>
                         <span>Usuários</span>
@@ -163,9 +169,12 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
             'agendado': 'status-concluido'
         };
 
+        let filtroAtual = '';
+
         function filtrarChamados(status, btn) {
             document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
+            filtroAtual = status;
             carregarChamados(status);
         }
 
@@ -173,8 +182,14 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
         async function carregarChamados(status = '') {
             const body = document.getElementById('tabelaGeral');
             try {
-                const res = await fetch(`api/gestor_chamados.php?status=${status}`);
-                const chamados = await res.json();
+                const json = await sgmFetch(`api/gestor_chamados.php?status=${encodeURIComponent(status)}`);
+                const { success, data: chamados, message } = sgmAsList(json);
+
+                if (!success) {
+                    body.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-danger">${message}</td></tr>`;
+                    return;
+                }
+
                 if (chamados.length === 0) {
                     body.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-muted"><i class="ph ph-folder-open fs-2 d-block mb-2"></i>Nenhum chamado encontrado.</td></tr>`;
                     return;
@@ -207,10 +222,13 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
                             ${c.tecnico_nome ? `<span class="small fw-medium"><i class="ph ph-user-check text-success"></i> ${c.tecnico_nome}</span>` : `<span class="text-muted small fst-italic">Não atribuído</span>`}
                         </td>
                         <td><span class="badge ${style}">${c.status.toUpperCase().replace('_', ' ')}</span></td>
-                        <td class="text-center">
+                        <td class="text-center d-flex gap-1 justify-content-center">
                             <a href="gestor_detalhes.php?id=${c.id_chamado}" class="btn-primary" style="width: auto; padding: 0.4rem 0.8rem; text-decoration: none; font-size: 0.75rem;">
                                 Gerenciar
                             </a>
+                            <button class="btn btn-sm btn-outline-danger" onclick="excluirChamado(${c.id_chamado})" title="Excluir">
+                                <i class="ph ph-trash"></i>
+                            </button>
                         </td>
                     </tr>`;
                 }).join('');
@@ -218,6 +236,20 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
                 body.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-danger">Erro ao carregar os dados.</td></tr>`;
             }
         }
+        async function excluirChamado(id) {
+            if (!confirm('Tem certeza que deseja excluir este chamado? Todos os comentários e anexos serão removidos.')) return;
+            const data = await sgmFetch('api/chamados.php', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id_chamado: id })
+            });
+            if (data.success) {
+                carregarChamados(filtroAtual);
+            } else {
+                alert(data.message);
+            }
+        }
+
         carregarChamados();
     </script>
 </body>

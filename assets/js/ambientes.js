@@ -1,6 +1,6 @@
 // Caminhos corretos baseados na sua estrutura de pastas
-const URL_API_AMBIENTE = 'api/ambientes.php'; 
-const URL_API_BLOCO = 'api/api_bloco.php'; 
+const URL_API_AMBIENTE = () => sgmUrl('api/ambientes.php');
+const URL_API_BLOCO = () => sgmUrl('api/api_bloco.php'); 
 
 document.addEventListener("DOMContentLoaded", () => {
     listarAmbientes();
@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function listarAmbientes() {
     try {
-        const response = await fetch(URL_API_AMBIENTE);
+        const response = await fetch(URL_API_AMBIENTE());
         const result = await response.json();
         const tbody = document.getElementById('tabelaAmbientesBody');
         tbody.innerHTML = '';
@@ -54,7 +54,7 @@ async function criarAmbiente() {
     }
 
     try {
-        const response = await fetch(URL_API_AMBIENTE, {
+        const response = await fetch(URL_API_AMBIENTE(), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ nome: nome, id_bloco: id_bloco })
@@ -74,10 +74,26 @@ async function criarAmbiente() {
     }
 }
 
+function mostrarChamadosVinculados(mensagem, chamados) {
+    const tbody = document.getElementById('chamadosVinculadosBody');
+    const msg = document.getElementById('chamadosVinculadosMsg');
+    if (!tbody) { alert(mensagem); return; }
+    msg.innerText = mensagem;
+    tbody.innerHTML = chamados.map(c => `
+        <tr>
+            <td>#${c.id_chamado}</td>
+            <td>${c.descricao_problema.substring(0, 50)}${c.descricao_problema.length > 50 ? '...' : ''}</td>
+            <td>${c.status}</td>
+            <td>${c.ambiente_nome || c.solicitante_nome || c.prioridade || '-'}</td>
+            <td><a href="gestor_detalhes.php?id=${c.id_chamado}" class="btn btn-sm btn-light">Ver</a></td>
+        </tr>`).join('');
+    new bootstrap.Modal(document.getElementById('modalChamadosVinculados')).show();
+}
+
 async function excluirAmbiente(id_ambiente) {
     if (confirm("Deseja realmente excluir este ambiente?")) {
         try {
-            const response = await fetch(URL_API_AMBIENTE, {
+            const response = await fetch(URL_API_AMBIENTE(), {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id_ambiente: id_ambiente })
@@ -85,6 +101,8 @@ async function excluirAmbiente(id_ambiente) {
             const result = await response.json();
             if (result.success) {
                 listarAmbientes();
+            } else if (result.chamados_vinculados && result.chamados_vinculados.length) {
+                mostrarChamadosVinculados(result.message, result.chamados_vinculados);
             } else {
                 alert("Erro: " + result.message);
             }
@@ -121,7 +139,7 @@ async function salvarEdicaoAmbiente() {
     }
 
     try {
-        const response = await fetch(URL_API_AMBIENTE, {
+        const response = await fetch(URL_API_AMBIENTE(), {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id_ambiente: id, nome: nome, id_bloco: id_bloco })
@@ -151,7 +169,7 @@ async function salvarEdicaoAmbiente() {
 
 async function listarBlocosParaSelect() {
     try {
-        const response = await fetch(URL_API_BLOCO);
+        const response = await fetch(URL_API_BLOCO());
         const result = await response.json();
         const selectCriar = document.getElementById('blocoAmbiente');
         const selectEditar = document.getElementById('editBlocoAmbiente'); // Select do modal de edição
@@ -182,7 +200,7 @@ async function criarBloco() {
     }
 
     try {
-        const response = await fetch(URL_API_BLOCO, {
+        const response = await fetch(URL_API_BLOCO(), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ nome: nome, descricao: descricao })
@@ -209,7 +227,7 @@ async function criarBloco() {
 // Abre o modal e lista todos os blocos na tabela interna dele
 async function abrirModalGerenciarBlocos() {
     try {
-        const response = await fetch(URL_API_BLOCO);
+        const response = await fetch(URL_API_BLOCO());
         const result = await response.json();
         const tbody = document.getElementById('listaBlocosBody');
         tbody.innerHTML = '';
@@ -220,13 +238,15 @@ async function abrirModalGerenciarBlocos() {
                     <tr>
                         <td class="text-muted">${bloco.id_bloco}</td>
                         <td class="fw-medium">${bloco.nome}</td>
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-outline-danger lixo" onclick="excluirBloco(${bloco.id_bloco})">
-                                <i class="bi bi-trash text-danger " ></i>
+                        <td class="text-center d-flex gap-1 justify-content-center">
+                            <button class="btn btn-sm btn-outline-warning" onclick="abrirEditarBloco(${bloco.id_bloco}, '${bloco.nome.replace(/'/g, "\\'")}', '${(bloco.descricao || '').replace(/'/g, "\\'")}')">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="excluirBloco(${bloco.id_bloco})">
+                                <i class="bi bi-trash-fill text-danger"></i>
                             </button>
                         </td>
-                    </tr>
-                `;
+                    </tr>`;
             });
         } else {
             tbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted">Nenhum bloco encontrado.</td></tr>`;
@@ -240,32 +260,54 @@ async function abrirModalGerenciarBlocos() {
     }
 }
 
-// Envia a requisição DELETE para a API
-async function excluirBloco(id_bloco) {
-    // AVISO IMPORTANTE: Explicar ao usuário sobre a exclusão em cascata
-    const confirmacao = confirm(
-        "🚨 ATENÇÃO: Excluir este bloco apagará AUTOMATICAMENTE todos os ambientes vinculados a ele!\n\nTem certeza absoluta que deseja excluir?"
-    );
+function abrirEditarBloco(id, nome, descricao) {
+    document.getElementById('editIdBloco').value = id;
+    document.getElementById('editNomeBloco').value = nome;
+    document.getElementById('editDescBloco').value = descricao || '';
+    new bootstrap.Modal(document.getElementById('modalEditarBloco')).show();
+}
 
-    if (confirmacao) {
-        try {
-            const response = await fetch(URL_API_BLOCO, {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id_bloco: id_bloco })
-            });
-            const result = await response.json()
-            
-            if (result.success) {
-                // Se der certo, precisamos atualizar 3 coisas na tela:
-                abrirModalGerenciarBlocos(); // 1. A listagem de blocos dentro do próprio modal
-                listarBlocosParaSelect();    // 2. Os <selects> de criar/editar ambiente para sumir com o bloco apagado
-                listarAmbientes();           // 3. A tabela principal, já que os ambientes desse bloco foram apagados pelo banco
-            } else {
-                alert("Erro: " + result.message);
-            }
-        } catch (error) {
-            console.error("Erro ao excluir bloco:", error);
+async function salvarEdicaoBloco() {
+    const id = document.getElementById('editIdBloco').value;
+    const nome = document.getElementById('editNomeBloco').value;
+    const descricao = document.getElementById('editDescBloco').value;
+    if (!nome) { alert('Informe o nome do bloco.'); return; }
+    const res = await fetch(URL_API_BLOCO(), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_bloco: id, nome, descricao })
+    });
+    const result = await res.json();
+    if (result.success) {
+        bootstrap.Modal.getInstance(document.getElementById('modalEditarBloco')).hide();
+        abrirModalGerenciarBlocos();
+        listarBlocosParaSelect();
+        listarAmbientes();
+    } else {
+        alert(result.message);
+    }
+}
+
+async function excluirBloco(id_bloco) {
+    if (!confirm('Tem certeza que deseja excluir este bloco? Só é possível se não houver chamados vinculados aos seus ambientes.')) return;
+    try {
+        const response = await fetch(URL_API_BLOCO(), {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id_bloco: id_bloco })
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            abrirModalGerenciarBlocos();
+            listarBlocosParaSelect();
+            listarAmbientes();
+        } else if (result.chamados_vinculados && result.chamados_vinculados.length) {
+            mostrarChamadosVinculados(result.message, result.chamados_vinculados);
+        } else {
+            alert('Erro: ' + result.message);
         }
+    } catch (error) {
+        console.error('Erro ao excluir bloco:', error);
     }
 }

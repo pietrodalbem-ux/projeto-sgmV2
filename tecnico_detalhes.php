@@ -8,19 +8,18 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_perfil'] !== 'tecnico') {
 }
 include 'layout/head.php'; 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$user_id = (int)$_SESSION['user_id'];
 $nome_exibicao = $_SESSION['user_nome'];
 $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
 ?>
 
 <body>
     <div class="app-container">
-        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <i class="ph-fill ph-wrench"></i>
                 <h2>SGM | Técnico</h2>
             </div>
-            
             <ul class="nav-links">
                 <li class="nav-item">
                     <a href="tecnico_minhas_tarefas.php" class="nav-link active">
@@ -29,7 +28,6 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
                     </a>
                 </li>
             </ul>
-
             <div class="mt-auto">
                 <a href="api/logout.php" class="nav-link text-danger">
                     <i class="ph ph-sign-out"></i>
@@ -38,34 +36,26 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
             </div>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
             <header class="topbar">
                 <div class="page-title d-flex align-items-center">
                     <button class="menu-toggle" onclick="toggleSidebar()"><i class="ph ph-list"></i></button>
                     <h1>Detalhes da Tarefa #<?= $id ?></h1>
-
                 </div>
-                
                 <div class="topbar-actions">
-                    <div class="d-flex align-items-center gap-2">
-
-                        <span class="text-muted small">Olá, <strong><?= $nome_exibicao ?></strong></span>
-                        <div style="width: 32px; height: 32px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem;"><?= $primeira_letra ?></div>
-                    </div>
-
+                    <span class="text-muted small">Olá, <strong><?= htmlspecialchars($nome_exibicao) ?></strong></span>
                 </div>
             </header>
 
             <div class="p-4">
-                <div class="row g-4">
+                <div id="alertaErro" class="alert alert-danger d-none"></div>
+                <div class="row g-4" id="conteudoTarefa" style="display:none;">
                     <div class="col-lg-8">
                         <div class="card h-100">
                             <div class="d-flex justify-content-between align-items-start mb-4">
                                 <h2 class="h5 fw-bold mb-0">Informações do Chamado</h2>
-                                <span id="badgeStatus" class="status-badge">CARREGANDO...</span>
+                                <span id="badgeStatus" class="status-badge">—</span>
                             </div>
-                            
                             <div class="row g-4">
                                 <div class="col-md-6">
                                     <label class="text-muted small fw-bold text-uppercase d-block mb-1">Local / Ambiente</label>
@@ -85,23 +75,17 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
                                 </div>
                                 <div class="col-12" id="boxFoto" style="display:none;">
                                     <label class="text-muted small fw-bold text-uppercase d-block mb-1">Evidência Visual</label>
-                                    <div class="p-2 border rounded bg-main d-inline-block">
-                                        <img id="imgAnexo" src="" style="max-height: 250px; border-radius: 8px; cursor: pointer;" onclick="window.open(this.src, '_blank')">
-                                    </div>
+                                    <img id="imgAnexo" src="" style="max-height: 250px; border-radius: 8px; cursor: pointer;" onclick="window.open(this.src, '_blank')">
                                 </div>
-
                             </div>
-
                         </div>
                     </div>
 
                     <div class="col-lg-4">
-                        <div class="card h-100">
-                            <h5 class="fw-bold mb-4 d-flex align-items-center gap-2">
-                                <i class="ph ph-check-circle text-success"></i> Atualizar Status
-                            </h5>
+                        <div class="card mb-4">
+                            <h5 class="fw-bold mb-4"><i class="ph ph-check-circle text-success"></i> Atualizar Status</h5>
                             <form id="formStatus">
-                                <div class="mb-4">
+                                <div class="mb-3">
                                     <label class="text-muted small fw-bold text-uppercase mb-2">Novo Status</label>
                                     <select id="selectStatus" class="form-control" required>
                                         <option value="aberto">Aberto</option>
@@ -109,113 +93,202 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
                                         <option value="concluido">Concluído</option>
                                     </select>
                                 </div>
-                                <div class="mb-4">
-                                    <label class="text-muted small fw-bold text-uppercase mb-2">Observações / Solução</label>
-                                    <textarea id="txtObservacao" class="form-control" rows="4" placeholder="Descreva o que foi feito..."></textarea>
-                                </div>
-                                <button type="submit" class="btn btn-primary w-100">Salvar Alterações</button>
+                                <button type="submit" class="btn btn-primary w-100">Salvar Status</button>
                             </form>
                         </div>
 
-                        <!-- Mural de Atualizações -->
-                        <div class="card mt-4">
-                            <h5 class="fw-bold mb-4 d-flex align-items-center gap-2">
-                                <i class="ph ph-chat-circle-dots text-primary"></i> Mural de Atualizações
-                            </h5>
+                        <div class="card">
+                            <h5 class="fw-bold mb-3"><i class="ph ph-chat-circle-dots text-primary"></i> Novo Comentário</h5>
+                            <form id="formComentario" enctype="multipart/form-data">
+                                <div class="mb-3">
+                                    <textarea id="txtComentario" class="form-control" rows="3" placeholder="Descreva o que foi feito..." required></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <input type="file" id="fotoComentario" accept="image/*" class="form-control">
+                                    <small class="text-muted">Imagem opcional</small>
+                                </div>
+                                <button type="submit" class="btn btn-outline-primary w-100">Registrar Atualização</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="card">
+                            <h5 class="fw-bold mb-4"><i class="ph ph-clock-counter-clockwise text-primary"></i> Histórico de Atualizações</h5>
                             <div id="muralComentarios" class="timeline">
                                 <p class="text-muted small">Nenhuma atualização registrada.</p>
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
         </main>
     </div>
 
+    <!-- Modal editar comentário -->
+    <div class="modal fade" id="modalEditarComentario" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content card p-4">
+                <h5 class="card-title mb-3">Editar Comentário</h5>
+                <form id="formEditarComentario" enctype="multipart/form-data">
+                    <input type="hidden" id="editComId">
+                    <div class="mb-3">
+                        <textarea id="editComTexto" class="form-control" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <input type="file" id="editComFoto" accept="image/*" class="form-control">
+                        <small class="text-muted">Deixe vazio para manter a imagem atual</small>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-light w-50" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary w-50">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/js/notificacoes.js"></script>
     <script>
+        const idChamado = <?= $id ?>;
+        const userId = <?= $user_id ?>;
+        let modalEditar;
+        let comentariosCache = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            modalEditar = new bootstrap.Modal(document.getElementById('modalEditarComentario'));
+            carregar();
+        });
+
         async function carregar() {
             try {
-                const res = await fetch(`api/gestor_chamados.php?id=<?= $id ?>`);
-                const c = await res.json();
-                
-                if(c) {
-                    document.getElementById('txtLocal').innerText = `${c.bloco_nome} - ${c.ambiente_nome}`;
-                    document.getElementById('txtPrioridade').innerText = c.prioridade.toUpperCase();
-                    document.getElementById('txtDescricao').innerText = c.descricao_problema;
-                    document.getElementById('selectStatus').value = c.status;
-                    
-                    if(c.data_previsao_conclusao) {
-                        const data = new Date(c.data_previsao_conclusao);
-                        document.getElementById('txtPrazo').innerText = data.toLocaleDateString('pt-BR');
-                    } else {
-                        document.getElementById('txtPrazo').innerText = 'Sem prazo definido';
-                    }
-                    
-                    const badge = document.getElementById('badgeStatus');
-                    badge.innerText = c.status.toUpperCase().replace('_', ' ');
-                    badge.className = `badge ${c.status === 'aberto' ? 'status-aberto' : 'status-concluido'}`;
+                const json = await sgmFetch(`api/gestor_chamados.php?id=${idChamado}`);
+                const c = sgmAsObject(json);
 
-                    if(c.foto) {
-                        document.getElementById('boxFoto').style.display = 'block';
-                        document.getElementById('imgAnexo').src = c.foto;
-                    }
-
-                    carregarMural();
+                if (!c || parseInt(c.id_tecnico) !== userId) {
+                    document.getElementById('alertaErro').classList.remove('d-none');
+                    document.getElementById('alertaErro').innerText = 'Tarefa não encontrada ou não atribuída a você.';
+                    return;
                 }
-            } catch (e) { console.error(e); }
+
+                document.getElementById('conteudoTarefa').style.display = 'flex';
+                document.getElementById('txtLocal').innerText = `${c.bloco_nome} - ${c.ambiente_nome}`;
+                document.getElementById('txtPrioridade').innerText = c.prioridade.toUpperCase();
+                document.getElementById('txtDescricao').innerText = c.descricao_problema;
+                document.getElementById('selectStatus').value = c.status;
+                document.getElementById('txtPrazo').innerText = c.data_previsao_conclusao
+                    ? new Date(c.data_previsao_conclusao).toLocaleDateString('pt-BR')
+                    : 'Sem prazo definido';
+
+                const badge = document.getElementById('badgeStatus');
+                badge.innerText = c.status.toUpperCase().replace('_', ' ');
+                badge.className = `badge ${c.status === 'aberto' ? 'status-aberto' : 'status-concluido'}`;
+
+                if (c.foto) {
+                    document.getElementById('boxFoto').style.display = 'block';
+                    document.getElementById('imgAnexo').src = c.foto;
+                }
+
+                carregarMural();
+            } catch (e) {
+                document.getElementById('alertaErro').classList.remove('d-none');
+                document.getElementById('alertaErro').innerText = 'Erro ao carregar tarefa.';
+            }
+        }
+
+        function renderMural(comentarios) {
+            comentariosCache = comentarios;
+            const container = document.getElementById('muralComentarios');
+            if (!comentarios.length) {
+                container.innerHTML = '<p class="text-muted small">Nenhuma atualização registrada.</p>';
+                return;
+            }
+            container.innerHTML = comentarios.map(com => {
+                const isOwn = parseInt(com.id_usuario) === userId;
+                const acoes = isOwn ? `
+                    <div class="d-flex gap-1 mt-2">
+                        <button class="btn btn-sm btn-outline-warning" onclick="abrirEditarComentario(${com.id_comentario})">Editar</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="excluirComentario(${com.id_comentario})">Excluir</button>
+                    </div>` : '';
+                return `
+                    <div class="timeline-item mb-3 pb-3 border-bottom">
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bold small">${com.usuario_nome}</span>
+                            <small class="text-muted">${new Date(com.data_envio).toLocaleString('pt-BR')}</small>
+                        </div>
+                        <p class="mb-1 small bg-light p-2 rounded mt-1">${com.texto}</p>
+                        ${com.caminho_arquivo ? `<img src="${com.caminho_arquivo}" class="rounded" style="max-height:120px;cursor:pointer;" onclick="window.open(this.src,'_blank')">` : ''}
+                        ${acoes}
+                    </div>`;
+            }).join('');
+        }
+
+        function abrirEditarComentario(id) {
+            const com = comentariosCache.find(c => parseInt(c.id_comentario) === parseInt(id));
+            if (!com) return;
+            document.getElementById('editComId').value = com.id_comentario;
+            document.getElementById('editComTexto').value = com.texto;
+            document.getElementById('editComFoto').value = '';
+            modalEditar.show();
         }
 
         async function carregarMural() {
-            const container = document.getElementById('muralComentarios');
-            try {
-                const res = await fetch(`api/comentarios.php?acao=listar&id_chamado=<?= $id ?>`);
-                const result = await res.json();
-                
-                if(result.success && result.data.length > 0) {
-                    container.innerHTML = result.data.map(com => `
-                        <div class="timeline-item">
-                            <div class="d-flex justify-content-between align-items-start mb-1">
-                                <span class="fw-bold small text-main">${com.usuario_nome} <span class="badge bg-light text-muted fw-normal" style="font-size: 0.6rem;">${com.perfil.toUpperCase()}</span></span>
-                                <small class="text-muted" style="font-size: 0.65rem;">${new Date(com.data_envio).toLocaleString('pt-BR')}</small>
-                            </div>
-                            <p class="mb-0 small text-muted bg-light p-2 rounded">${com.texto}</p>
-                        </div>
-                    `).join('');
-                } else {
-                    container.innerHTML = '<p class="text-muted small">Nenhuma atualização registrada.</p>';
-                }
-            } catch (e) { console.error(e); }
+            const result = await sgmFetch(`api/comentarios.php?acao=listar&id_chamado=${idChamado}`);
+            if (result.success) renderMural(result.data || []);
         }
 
+        document.getElementById('formComentario').onsubmit = async (e) => {
+            e.preventDefault();
+            const fd = new FormData();
+            fd.append('acao', 'salvar');
+            fd.append('id_chamado', idChamado);
+            fd.append('texto', document.getElementById('txtComentario').value);
+            const foto = document.getElementById('fotoComentario');
+            if (foto.files.length) fd.append('foto', foto.files[0]);
+            const data = await sgmFetch('api/comentarios.php', { method: 'POST', body: fd });
+            if (data.success) {
+                document.getElementById('formComentario').reset();
+                renderMural(data.data || []);
+            } else alert(data.message);
+        };
+
+        document.getElementById('formEditarComentario').onsubmit = async (e) => {
+            e.preventDefault();
+            const fd = new FormData();
+            fd.append('acao', 'atualizar');
+            fd.append('id_comentario', document.getElementById('editComId').value);
+            fd.append('texto', document.getElementById('editComTexto').value);
+            const foto = document.getElementById('editComFoto');
+            if (foto.files.length) fd.append('foto', foto.files[0]);
+            const data = await sgmFetch('api/comentarios.php', { method: 'POST', body: fd });
+            if (data.success) {
+                modalEditar.hide();
+                renderMural(data.data);
+            } else alert(data.message);
+        };
+
+        async function excluirComentario(id) {
+            if (!confirm('Excluir este comentário?')) return;
+            const fd = new FormData();
+            fd.append('acao', 'excluir');
+            fd.append('id_comentario', id);
+            const data = await sgmFetch('api/comentarios.php', { method: 'POST', body: fd });
+            if (data.success) renderMural(data.data || []);
+            else alert(data.message);
+        };
 
         document.getElementById('formStatus').onsubmit = async (e) => {
             e.preventDefault();
-            const payload = {
-                id_chamado: <?= $id ?>,
-                status: document.getElementById('selectStatus').value,
-                observacao: document.getElementById('txtObservacao').value
-            };
-            // Usando a API de atribuir que também pode atualizar status se configurada, 
-            // ou uma API específica de status se existir.
-            // Para este projeto, vamos supor que api/atribuir_chamado.php ou uma nova api/atualizar_status.php lida com isso.
-            // Vou criar a api/atualizar_status.php para ser mais limpo.
-            const res = await fetch('api/atualizar_status.php', {
+            const res = await sgmFetch('api/atualizar_status.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({ id_chamado: idChamado, status: document.getElementById('selectStatus').value })
             });
-            const result = await res.json();
-            if (result.success) {
-                alert("Status atualizado!");
+            if (res.success) {
+                alert('Status atualizado!');
                 window.location.href = 'tecnico_minhas_tarefas.php';
-            } else {
-                alert("Erro: " + result.message);
-            }
+            } else alert(res.message);
         };
-        carregar();
     </script>
 </body>
 </html>

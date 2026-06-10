@@ -120,12 +120,10 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
 
         async function iniciar() {
             try {
-                const resB = await fetch('api/localizacoes.php?acao=listar_blocos');
-                const blocos = await resB.json();
+                const blocos = sgmAsList(await sgmFetch('api/localizacoes.php?acao=listar_blocos')).data;
                 preencherSelect('bloco', blocos, 'id_bloco', 'nome', 'Selecione o Bloco..');
 
-                const resT = await fetch('api/localizacoes.php?acao=listar_tipos');
-                const tipos = await resT.json();
+                const tipos = sgmAsList(await sgmFetch('api/localizacoes.php?acao=listar_tipos')).data;
                 preencherSelect('tipo', tipos, 'id_tipo', 'nome', 'Selecione o tipo...');
             } catch (erro) {
                 console.error("Erro ao carregar dados iniciais:", erro);
@@ -142,8 +140,7 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
             try {
                 selA.disabled = true;
                 selA.innerHTML = '<option value="">Carregando...</option>';
-                const res = await fetch(`api/localizacoes.php?acao=listar_ambientes&id_bloco=${id_bloco}`);
-                const ambientes = await res.json();
+                const ambientes = sgmAsList(await sgmFetch(`api/localizacoes.php?acao=listar_ambientes&id_bloco=${id_bloco}`)).data;
                 preencherSelect('sala', ambientes, 'id_ambiente', 'nome', 'Selecione a Sala...');
                 selA.disabled = false;
             } catch (erro) {
@@ -167,12 +164,10 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
                     formData.append('foto', fotoInput.files[0]);
                 }
 
-                const response = await fetch('api/salvar_chamado.php', {
+                const result = await sgmFetch('api/salvar_chamado.php', {
                     method: 'POST',
                     body: formData
                 });
-
-                const result = await response.json();
                 if (result.success) {
                     alert(result.message);
                     window.location.href = 'solicitante_dashboard.php';
@@ -191,4 +186,4 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
         iniciar();
     </script>
 </body>
-</html>
+</html>

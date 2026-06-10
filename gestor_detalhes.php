@@ -24,6 +24,7 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
                 <li class="nav-item"><a href="gestor_dashboard.php" class="nav-link"><i class="ph ph-chart-line"></i><span>Dashboard</span></a></li>
                 <li class="nav-item"><a href="gestor_chamados.php" class="nav-link active"><i class="ph ph-list-bullets"></i><span>Chamados</span></a></li>
                 <li class="nav-item"><a href="gestor_ambientes.php" class="nav-link"><i class="ph ph-buildings"></i><span>Ambientes</span></a></li>
+                <li class="nav-item"><a href="gestor_tecnicos.php" class="nav-link"><i class="ph ph-wrench"></i><span>Técnicos</span></a></li>
                 <li class="nav-item"><a href="gestor_usuarios.php" class="nav-link"><i class="ph ph-users"></i><span>Usuários</span></a></li>
             </ul>
 
@@ -96,6 +97,39 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
                                 </div>
 
                             </div>
+
+                            <div class="mt-4 pt-4 border-top">
+                                <h5 class="fw-bold mb-3"><i class="ph ph-pencil-simple text-warning"></i> Editar Dados do Chamado</h5>
+                                <form id="formEditarChamado" enctype="multipart/form-data">
+                                    <input type="hidden" name="id_chamado" value="<?= $id ?>">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold">Bloco</label>
+                                            <select id="editBloco" class="form-control" onchange="carregarAmbientesEdit(this.value)"></select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold">Ambiente</label>
+                                            <select id="editAmbiente" name="id_ambiente" class="form-control" required></select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold">Tipo de Serviço</label>
+                                            <select id="editTipo" name="id_tipo" class="form-control" required></select>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label small fw-bold">Descrição</label>
+                                            <textarea id="editDescricao" name="descricao" class="form-control" rows="3" required></textarea>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label small fw-bold">Nova foto (opcional)</label>
+                                            <input type="file" id="editFoto" name="foto" accept="image/*" class="form-control">
+                                        </div>
+                                        <div class="col-12">
+                                            <button type="submit" class="btn btn-warning">Salvar Dados</button>
+                                            <button type="button" class="btn btn-outline-danger ms-2" onclick="excluirChamado()">Excluir Chamado</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
 
@@ -162,44 +196,60 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
     <script>
         async function carregar() {
             try {
-                const resT = await fetch('api/usuarios.php?acao=listar&perfil=tecnico');
-                const tecnicos = await resT.json();
+                const tecJson = await sgmFetch('api/usuarios.php?acao=listar&perfil=tecnico');
+                const tecnicos = sgmAsList(tecJson).data;
                 const select = document.getElementById('selectTecnico');
                 tecnicos.forEach(t => { select.innerHTML += `<option value="${t.id_usuario}">${t.nome}</option>`; });
 
-                const resC = await fetch(`api/gestor_chamados.php?id=<?= $id ?>`);
-                const c = await resC.json();
-                
-                if(c) {
-                    document.getElementById('txtSolicitante').innerText = c.solicitante_nome;
-                    document.getElementById('txtLocal').innerText = `${c.bloco_nome} - ${c.ambiente_nome}`;
-                    document.getElementById('txtDescricao').innerText = c.descricao_problema;
-                    
-                    const badge = document.getElementById('badgeStatus');
-                    badge.innerText = c.status.toUpperCase().replace('_', ' ');
-                    badge.className = `badge ${c.status === 'aberto' ? 'status-aberto' : 'status-concluido'}`;
-                    
-                    if(c.id_tecnico) document.getElementById('selectTecnico').value = c.id_tecnico;
-                    if(c.prioridade) document.getElementById('prioridade').value = c.prioridade;
-                    if(c.status) document.getElementById('selectStatus').value = c.status;
-                    if(c.data_previsao_conclusao) document.getElementById('data_previsao').value = c.data_previsao_conclusao;
+                const c = sgmAsObject(await sgmFetch(`api/gestor_chamados.php?id=<?= $id ?>`));
+                const full = sgmAsObject(await sgmFetch(`api/chamados.php?id=<?= $id ?>`));
+                const blocos = sgmAsList(await sgmFetch('api/localizacoes.php?acao=listar_blocos')).data;
+                const tipos = sgmAsList(await sgmFetch('api/localizacoes.php?acao=listar_tipos')).data;
 
-                    if(c.foto) {
-                        document.getElementById('boxFoto').style.display = 'block';
-                        document.getElementById('imgAnexo').src = c.foto;
-                    }
+                const preencher = (id, dados, cId, cNome, padrao) => {
+                    const s = document.getElementById(id);
+                    s.innerHTML = `<option value="">${padrao}</option>` + dados.map(i => `<option value="${i[cId]}">${i[cNome]}</option>`).join('');
+                };
+                preencher('editBloco', blocos, 'id_bloco', 'nome', 'Bloco...');
+                preencher('editTipo', tipos, 'id_tipo', 'nome', 'Tipo...');
 
-                    // Carrega Mural de Comentários
-                    carregarMural();
+                if (!c) {
+                    alert('Não foi possível carregar os dados do chamado.');
+                    return;
                 }
+
+                document.getElementById('txtSolicitante').innerText = c.solicitante_nome;
+                document.getElementById('txtLocal').innerText = `${c.bloco_nome} - ${c.ambiente_nome}`;
+                document.getElementById('txtDescricao').innerText = c.descricao_problema;
+                document.getElementById('editDescricao').value = c.descricao_problema;
+                if (full && full.id_bloco) {
+                    document.getElementById('editBloco').value = full.id_bloco;
+                    await carregarAmbientesEdit(full.id_bloco, full.id_ambiente);
+                }
+                if (full && full.id_tipo_servico) document.getElementById('editTipo').value = full.id_tipo_servico;
+
+                const badge = document.getElementById('badgeStatus');
+                badge.innerText = c.status.toUpperCase().replace('_', ' ');
+                badge.className = `badge ${c.status === 'aberto' ? 'status-aberto' : 'status-concluido'}`;
+
+                if (c.id_tecnico) document.getElementById('selectTecnico').value = c.id_tecnico;
+                if (c.prioridade) document.getElementById('prioridade').value = c.prioridade;
+                if (c.status) document.getElementById('selectStatus').value = c.status;
+                if (c.data_previsao_conclusao) document.getElementById('data_previsao').value = c.data_previsao_conclusao;
+
+                if (c.foto) {
+                    document.getElementById('boxFoto').style.display = 'block';
+                    document.getElementById('imgAnexo').src = c.foto;
+                }
+
+                carregarMural();
             } catch (e) { console.error(e); }
         }
 
         async function carregarMural() {
             const container = document.getElementById('muralComentarios');
             try {
-                const res = await fetch(`api/comentarios.php?acao=listar&id_chamado=<?= $id ?>`);
-                const result = await res.json();
+                const result = await sgmFetch(`api/comentarios.php?acao=listar&id_chamado=<?= $id ?>`);
                 
                 if(result.success && result.data.length > 0) {
                     container.innerHTML = result.data.map(com => `
@@ -208,7 +258,8 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
                                 <span class="fw-bold small text-main">${com.usuario_nome} <span class="badge bg-light text-muted fw-normal" style="font-size: 0.6rem;">${com.perfil.toUpperCase()}</span></span>
                                 <small class="text-muted" style="font-size: 0.65rem;">${new Date(com.data_envio).toLocaleString('pt-BR')}</small>
                             </div>
-                            <p class="mb-0 small text-muted bg-light p-2 rounded">${com.texto}</p>
+                            <p class="mb-1 small text-muted bg-light p-2 rounded">${com.texto}</p>
+                            ${com.caminho_arquivo ? `<img src="${com.caminho_arquivo}" class="rounded mt-1" style="max-height:100px;cursor:pointer;" onclick="window.open(this.src,'_blank')">` : ''}
                         </div>
                     `).join('');
                 } else {
@@ -217,6 +268,36 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
             } catch (e) { console.error(e); }
         }
 
+
+        async function carregarAmbientesEdit(id_bloco, id_ambiente = null) {
+            const sel = document.getElementById('editAmbiente');
+            if (!id_bloco) return;
+            const ambientes = sgmAsList(await sgmFetch(`api/localizacoes.php?acao=listar_ambientes&id_bloco=${id_bloco}`)).data;
+            sel.innerHTML = ambientes.map(a => `<option value="${a.id_ambiente}">${a.nome}</option>`).join('');
+            if (id_ambiente) sel.value = id_ambiente;
+        }
+
+        document.getElementById('formEditarChamado').onsubmit = async (e) => {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+            fd.append('id_ambiente', document.getElementById('editAmbiente').value);
+            fd.append('id_tipo', document.getElementById('editTipo').value);
+            fd.append('descricao', document.getElementById('editDescricao').value);
+            const data = await sgmFetch('api/atualizar_chamado.php', { method: 'POST', body: fd });
+            if (data.success) { alert(data.message); location.reload(); }
+            else alert(data.message);
+        };
+
+        async function excluirChamado() {
+            if (!confirm('Tem certeza que deseja excluir este chamado permanentemente?')) return;
+            const data = await sgmFetch('api/chamados.php', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id_chamado: <?= $id ?> })
+            });
+            if (data.success) { alert(data.message); window.location.href = 'gestor_chamados.php'; }
+            else alert(data.message);
+        }
 
         document.getElementById('formAtribuir').onsubmit = async (e) => {
             e.preventDefault();
@@ -227,13 +308,11 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
                 status: document.getElementById('selectStatus').value,
                 data_previsao_conclusao: document.getElementById('data_previsao').value
             };
-            const res = await fetch('api/atribuir_chamado.php', {
+            const result = await sgmFetch('api/atribuir_chamado.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-
-            const result = await res.json();
             if (result.success) {
                 alert("Atribuído com sucesso!");
                 window.location.href = 'gestor_chamados.php';

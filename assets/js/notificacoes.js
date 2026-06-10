@@ -1,7 +1,6 @@
 async function carregarNotificacoes() {
     try {
-        const res = await fetch('api/notificacoes.php?acao=listar');
-        const data = await res.json();
+        const data = await sgmFetch('api/notificacoes.php?acao=listar');
         
         if (data.success) {
             const badge = document.getElementById('notif-badge');
@@ -50,15 +49,14 @@ async function carregarNotificacoes() {
 }
 
 async function marcarComoLida(id) {
-    await fetch(`api/notificacoes.php?acao=marcar_lida&id=${id}`);
+    await sgmFetch(`api/notificacoes.php?acao=marcar_lida&id=${id}`);
 }
 
 async function excluirNotificacao(event, id) {
     event.stopPropagation();
     event.preventDefault();
     if (confirm('Deseja excluir esta notificação?')) {
-        const res = await fetch(`api/notificacoes.php?acao=excluir&id=${id}`);
-        const data = await res.json();
+        const data = await sgmFetch(`api/notificacoes.php?acao=excluir&id=${id}`);
         if (data.success) {
             carregarNotificacoes();
         }

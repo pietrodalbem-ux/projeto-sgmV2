@@ -5,10 +5,23 @@ if (isset($_SESSION['user_id'])) {
     exit;
 }
 ?>
+<?php
+$sgmScriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
+$sgmBase = ($sgmScriptDir === '/' || $sgmScriptDir === '.') ? '' : rtrim($sgmScriptDir, '/') . '/';
+?>
 <!DOCTYPE html>
-
 <html lang="pt-br">
-<?php include 'layout/head.php'; ?>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SGM - Login</title>
+    <script>window.SGM_BASE = <?= json_encode($sgmBase) ?>;</script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="<?= htmlspecialchars($sgmBase) ?>assets/css/style.css">
+    <script src="<?= htmlspecialchars($sgmBase) ?>assets/js/api.js"></script>
+</head>
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
@@ -278,7 +291,7 @@ if (isset($_SESSION['user_id'])) {
         </div>
         
         <div class="footer">
-            &copy; 2025 SGM | Sophisticated Asset Management
+            &copy; 2025 SGM | Desenvolvido por Yasmin Gabriélli da Come Silva
         </div>
     </div>
 
@@ -298,16 +311,14 @@ if (isset($_SESSION['user_id'])) {
             };
 
             try {
-                const response = await fetch('api/login.php', {
+                const result = await sgmFetch('api/login.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
-                const result = await response.json();
-
                 if (result.success) {
-                    window.location.href = 'dashboard.php';
+                    window.location.href = sgmUrl('dashboard.php');
                 } else {
                     errorDiv.innerText = result.message;
                     errorDiv.style.display = 'block';

@@ -3,9 +3,8 @@ session_start();
 require_once '../config/database.php';
 header('Content-Type: application/json');
 
-// 1. Verificação de Sessão Segura
-if(!isset($_SESSION['user_id'])){
-    echo json_encode(["success" => false, "message" => "Sessão expirada"]);
+if (!isset($_SESSION['user_id']) || $_SESSION['user_perfil'] !== 'solicitante') {
+    echo json_encode(["success" => false, "message" => "Apenas solicitantes podem abrir chamados."]);
     exit();
 }
 

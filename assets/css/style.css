@@ -414,12 +414,136 @@ th {
     color: white !important;
 }
 
-/* Icon Uniformity */
-i.ph,
-i.ph-fill,
-i.bi {
+/* Ícones — cor correta por contexto */
+.sidebar i.ph,
+.sidebar i.ph-fill,
+.sidebar i.bi,
+.sidebar-header i {
     color: var(--text-white);
-    opacity: 0.85;
+    opacity: 0.9;
+}
+
+.main-content i.ph,
+.main-content i.ph-fill,
+.main-content i.bi,
+.btn i.ph,
+.btn i.ph-fill,
+.btn i.bi,
+.btn-primary i,
+.btn-warning i,
+.btn-danger i,
+.btn-light i,
+.btn-outline-danger i,
+.btn-outline-warning i,
+.btn-outline-success i,
+.btn-outline-primary i {
+    color: inherit !important;
+    opacity: 1;
+}
+
+/* Botões Bootstrap — fundos sólidos */
+.btn {
+    border-radius: 10px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+}
+
+.btn-light {
+    background-color: #e2e8f0 !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #1e293b !important;
+}
+
+.btn-light:hover {
+    background-color: #cbd5e1 !important;
+    color: #0f172a !important;
+}
+
+.btn-warning {
+    background-color: #f59e0b !important;
+    border-color: #f59e0b !important;
+    color: #ffffff !important;
+}
+
+.btn-warning:hover {
+    background-color: #d97706 !important;
+    border-color: #d97706 !important;
+    color: #ffffff !important;
+}
+
+.btn-danger {
+    background-color: #ef4444 !important;
+    border-color: #ef4444 !important;
+    color: #ffffff !important;
+}
+
+.btn-danger:hover {
+    background-color: #dc2626 !important;
+    color: #ffffff !important;
+}
+
+.btn-outline-danger {
+    background-color: #ffffff !important;
+    border: 1px solid #ef4444 !important;
+    color: #ef4444 !important;
+}
+
+.btn-outline-danger:hover {
+    background-color: #ef4444 !important;
+    color: #ffffff !important;
+}
+
+.btn-outline-warning {
+    background-color: #ffffff !important;
+    border: 1px solid #f59e0b !important;
+    color: #b45309 !important;
+}
+
+.btn-outline-warning:hover {
+    background-color: #f59e0b !important;
+    color: #ffffff !important;
+}
+
+.btn-outline-success {
+    background-color: #ffffff !important;
+    border: 1px solid #10b981 !important;
+    color: #059669 !important;
+}
+
+.btn-outline-success:hover {
+    background-color: #10b981 !important;
+    color: #ffffff !important;
+}
+
+.btn-outline-primary {
+    background-color: #ffffff !important;
+    border: 1px solid var(--primary) !important;
+    color: var(--primary) !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary.active {
+    background-color: var(--primary) !important;
+    color: #ffffff !important;
+}
+
+.btn-secondary {
+    background-color: #64748b !important;
+    border-color: #64748b !important;
+    color: #ffffff !important;
+}
+
+.btn-dark {
+    background-color: #1e293b !important;
+    border-color: #1e293b !important;
+    color: #ffffff !important;
+}
+
+.filtro-btn {
+    background-color: #ffffff !important;
 }
 
 /* Filter Button Enhancements */

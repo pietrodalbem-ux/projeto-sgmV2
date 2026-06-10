@@ -26,6 +26,7 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
                 <li class="nav-item"><a href="gestor_dashboard.php" class="nav-link"><i class="ph ph-chart-line"></i><span>Dashboard</span></a></li>
                 <li class="nav-item"><a href="gestor_chamados.php" class="nav-link"><i class="ph ph-list-bullets"></i><span>Chamados</span></a></li>
                 <li class="nav-item"><a href="gestor_ambientes.php" class="nav-link active"><i class="ph ph-buildings"></i><span>Ambientes</span></a></li>
+                <li class="nav-item"><a href="gestor_tecnicos.php" class="nav-link"><i class="ph ph-wrench"></i><span>Técnicos</span></a></li>
                 <li class="nav-item"><a href="gestor_usuarios.php" class="nav-link"><i class="ph ph-users"></i><span>Usuários</span></a></li>
             </ul>
 
@@ -162,6 +163,39 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
                     <button type="button" class="btn-primary bg-warning text-dark border-0" onclick="salvarEdicaoAmbiente()">Atualizar</button>
                 </div>
             </form>
+        </div></div>
+    </div>
+
+    <div class="modal fade" id="modalChamadosVinculados" tabindex="-1">
+        <div class="modal-dialog modal-lg"><div class="modal-content card p-4">
+            <h5 class="card-title mb-3 text-danger">Exclusão bloqueada</h5>
+            <p id="chamadosVinculadosMsg" class="text-muted small"></p>
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead><tr><th>ID</th><th>Descrição</th><th>Status</th><th>Info</th><th></th></tr></thead>
+                    <tbody id="chamadosVinculadosBody"></tbody>
+                </table>
+            </div>
+            <button class="btn btn-light w-100 mt-3" data-bs-dismiss="modal">Fechar</button>
+        </div></div>
+    </div>
+
+    <div class="modal fade" id="modalEditarBloco" tabindex="-1">
+        <div class="modal-dialog"><div class="modal-content card p-4">
+            <h5 class="card-title mb-4">Editar Bloco</h5>
+            <input type="hidden" id="editIdBloco">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Nome</label>
+                <input type="text" class="form-control" id="editNomeBloco" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Descrição</label>
+                <textarea class="form-control" id="editDescBloco" rows="2"></textarea>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-light w-50" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-warning w-50" onclick="salvarEdicaoBloco()">Salvar</button>
+            </div>
         </div></div>
     </div>
 

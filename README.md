@@ -69,7 +69,7 @@ Os arquivos de migração e dump podem ser encontrados em `/docs`.
     - Verifique as credenciais em `config/database.php`.
 
 4.  **Acesso**:
-    - Abra o navegador e acesse `http://localhost/2025/projeto-sgm`.
+    - Abra o navegador e acesse `http://localhost/2025/projeto-sgmV2`.
 
 ## 🔑 Credenciais de Teste (Padrão)
 

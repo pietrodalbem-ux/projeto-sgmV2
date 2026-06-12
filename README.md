@@ -57,7 +57,7 @@ Os arquivos de migração e dump podem ser encontrados em `/docs`.
 
 1.  **Clone o repositório** para a pasta `htdocs` do seu XAMPP:
     ```bash
-    git clone https://github.com/seu-usuario/projeto-sgm.git
+    git clone https://github.com/seu-usuario/projeto-sgmV2.git
     ```
 
 2.  **Importe o Banco de Dados**:

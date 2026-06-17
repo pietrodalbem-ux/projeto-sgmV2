@@ -600,3 +600,19 @@ th {
     border: 2px solid white;
     transform: translateX(-50%);
 }
+
+/* Comment Image Thumbnails styling */
+.img-comment-thumbnail {
+    max-width: 120px;
+    max-height: 80px;
+    object-fit: cover;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease !important;
+}
+
+.img-comment-thumbnail:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}

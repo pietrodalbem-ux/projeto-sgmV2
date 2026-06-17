@@ -21,7 +21,7 @@ if ($acao === 'listar') {
 
     $sql = "SELECT id_usuario, nome, email, perfil, ativo, data_criacao FROM usuarios $where ORDER BY nome ASC";
     $result = $conn->query($sql);
-    echo json_encode($result->fetch_all(MYSQLI_ASSOC));
+    echo json_encode(["success" => true, "data" => $result->fetch_all(MYSQLI_ASSOC)]);
     exit;
 }
 

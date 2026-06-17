@@ -74,8 +74,8 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
                                     <div class="p-3 bg-main rounded border mb-3" id="txtDescricao">...</div>
                                 </div>
                                 <div class="col-12" id="boxFoto" style="display:none;">
-                                    <label class="text-muted small fw-bold text-uppercase d-block mb-1">Evidência Visual</label>
-                                    <img id="imgAnexo" src="" style="max-height: 250px; border-radius: 8px; cursor: pointer;" onclick="window.open(this.src, '_blank')">
+                                    <label class="text-muted small fw-bold text-uppercase d-block mb-1">Evidências Visuais</label>
+                                    <div id="containerFotos" class="d-flex flex-wrap gap-2"></div>
                                 </div>
                             </div>
                         </div>
@@ -153,10 +153,12 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
         const idChamado = <?= $id ?>;
         const userId = <?= $user_id ?>;
         let modalEditar;
+        let modalVisualizar;
         let comentariosCache = [];
 
         document.addEventListener('DOMContentLoaded', () => {
             modalEditar = new bootstrap.Modal(document.getElementById('modalEditarComentario'));
+            modalVisualizar = new bootstrap.Modal(document.getElementById('modalVerImagem'));
             carregar();
         });
 
@@ -184,9 +186,12 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
                 badge.innerText = c.status.toUpperCase().replace('_', ' ');
                 badge.className = `badge ${c.status === 'aberto' ? 'status-aberto' : 'status-concluido'}`;
 
-                if (c.foto) {
+                if (c.fotos && c.fotos.length > 0) {
                     document.getElementById('boxFoto').style.display = 'block';
-                    document.getElementById('imgAnexo').src = c.foto;
+                    document.getElementById('containerFotos').innerHTML = c.fotos.map(f => `<img src="${f}" style="max-height: 250px; border-radius: 8px; cursor: pointer;" onclick="abrirModalImagem(this.src)">`).join('');
+                } else if (c.foto) {
+                    document.getElementById('boxFoto').style.display = 'block';
+                    document.getElementById('containerFotos').innerHTML = `<img src="${c.foto}" style="max-height: 250px; border-radius: 8px; cursor: pointer;" onclick="abrirModalImagem(this.src)">`;
                 }
 
                 carregarMural();
@@ -217,7 +222,10 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
                             <small class="text-muted">${new Date(com.data_envio).toLocaleString('pt-BR')}</small>
                         </div>
                         <p class="mb-1 small bg-light p-2 rounded mt-1">${com.texto}</p>
-                        ${com.caminho_arquivo ? `<img src="${com.caminho_arquivo}" class="rounded" style="max-height:120px;cursor:pointer;" onclick="window.open(this.src,'_blank')">` : ''}
+                        ${com.caminho_arquivo ? `
+                        <div class="mt-2">
+                            <img src="${com.caminho_arquivo}" class="img-thumbnail img-comment-thumbnail" style="max-width: 120px; max-height: 80px; object-fit: cover; cursor: pointer; transition: transform 0.2s;" onclick="abrirModalImagem(this.src)" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        </div>` : ''}
                         ${acoes}
                     </div>`;
             }).join('');
@@ -289,6 +297,23 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
                 window.location.href = 'tecnico_minhas_tarefas.php';
             } else alert(res.message);
         };
+
+        function abrirModalImagem(src) {
+            document.getElementById('imgModalVisualizar').src = src;
+            modalVisualizar.show();
+        }
     </script>
+
+    <!-- Modal para visualização de imagem em tamanho maior -->
+    <div class="modal fade" id="modalVerImagem" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content bg-transparent border-0">
+                <div class="modal-body p-0 text-center position-relative">
+                    <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    <img id="imgModalVisualizar" src="" class="img-fluid rounded shadow-lg" style="max-height: 85vh; border: 3px solid rgba(255, 255, 255, 0.25);">
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

@@ -17,10 +17,10 @@ function buscarChamado($conn, $id_chamado) {
     $sql = "SELECT c.*, a.nome AS ambiente_nome, a.id_bloco, b.nome AS bloco_nome,
                    u.nome AS solicitante_nome, ts.nome AS tipo_nome, ts.id_tipo
             FROM chamados c
-            JOIN ambientes a ON c.id_ambiente = a.id_ambiente
-            JOIN blocos b ON a.id_bloco = b.id_bloco
-            JOIN usuarios u ON c.id_solicitante = u.id_usuario
-            JOIN tipos_servico ts ON c.id_tipo_servico = ts.id_tipo
+            LEFT JOIN ambientes a ON c.id_ambiente = a.id_ambiente
+            LEFT JOIN blocos b ON a.id_bloco = b.id_bloco
+            LEFT JOIN usuarios u ON c.id_solicitante = u.id_usuario
+            LEFT JOIN tipos_servico ts ON c.id_tipo_servico = ts.id_tipo
             WHERE c.id_chamado = $id";
     $result = $conn->query($sql);
     return $result ? $result->fetch_assoc() : null;
@@ -66,8 +66,15 @@ if ($method === 'GET') {
             exit;
         }
 
-        $anexo = $conn->query("SELECT caminho_arquivo FROM chamados_anexos WHERE id_chamado = $id_chamado ORDER BY id_anexo ASC LIMIT 1");
-        $chamado['foto'] = ($anexo && $row = $anexo->fetch_assoc()) ? $row['caminho_arquivo'] : null;
+        $anexos = $conn->query("SELECT caminho_arquivo FROM chamados_anexos WHERE id_chamado = $id_chamado ORDER BY id_anexo ASC");
+        $fotos = [];
+        if ($anexos) {
+            while ($row = $anexos->fetch_assoc()) {
+                $fotos[] = $row['caminho_arquivo'];
+            }
+        }
+        $chamado['fotos'] = $fotos;
+        $chamado['foto'] = !empty($fotos) ? $fotos[0] : null; // Keep for fallback/thumbnail
         $chamado['thumbnail'] = $chamado['foto'];
 
         echo json_encode(["success" => true, "data" => $chamado]);
@@ -88,8 +95,8 @@ if ($method === 'GET') {
                    a.nome AS ambiente_nome, b.nome AS bloco_nome,
                    (SELECT caminho_arquivo FROM chamados_anexos WHERE id_chamado = c.id_chamado ORDER BY id_anexo ASC LIMIT 1) AS thumbnail
             FROM chamados c
-            JOIN ambientes a ON c.id_ambiente = a.id_ambiente
-            JOIN blocos b ON a.id_bloco = b.id_bloco
+            LEFT JOIN ambientes a ON c.id_ambiente = a.id_ambiente
+            LEFT JOIN blocos b ON a.id_bloco = b.id_bloco
             WHERE $where
             ORDER BY c.data_abertura DESC";
 

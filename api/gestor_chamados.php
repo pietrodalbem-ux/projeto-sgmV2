@@ -41,9 +41,9 @@ $sql = "SELECT c.id_chamado,
                t.nome AS tecnico_nome,
                (SELECT caminho_arquivo FROM chamados_anexos WHERE id_chamado = c.id_chamado ORDER BY id_anexo ASC LIMIT 1) AS foto
         FROM chamados c
-        JOIN ambientes a ON c.id_ambiente = a.id_ambiente
-        JOIN blocos b ON a.id_bloco = b.id_bloco
-        JOIN usuarios u ON c.id_solicitante = u.id_usuario
+        LEFT JOIN ambientes a ON c.id_ambiente = a.id_ambiente
+        LEFT JOIN blocos b ON a.id_bloco = b.id_bloco
+        LEFT JOIN usuarios u ON c.id_solicitante = u.id_usuario
         LEFT JOIN usuarios t ON c.id_tecnico = t.id_usuario
         $whereClause
         ORDER BY CASE
@@ -62,7 +62,18 @@ if (!$result) {
 $dados = $result->fetch_all(MYSQLI_ASSOC);
 
 if ($id > 0) {
-    echo json_encode(["success" => true, "data" => $dados[0] ?? null]);
+    $row = $dados[0] ?? null;
+    if ($row) {
+        $anexos = $conn->query("SELECT caminho_arquivo FROM chamados_anexos WHERE id_chamado = $id ORDER BY id_anexo ASC");
+        $fotos = [];
+        if ($anexos) {
+            while ($a = $anexos->fetch_assoc()) {
+                $fotos[] = $a['caminho_arquivo'];
+            }
+        }
+        $row['fotos'] = $fotos;
+    }
+    echo json_encode(["success" => true, "data" => $row]);
 } else {
     echo json_encode(["success" => true, "data" => $dados]);
 }

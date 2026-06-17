@@ -92,8 +92,9 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
                         </div>
 
                         <div class="mb-4">
-                            <label class="form-label fw-bold">Foto da Ocorrência</label>
-                            <input type="file" id="foto" name="foto" accept="image/*" class="form-control">
+                            <label class="form-label fw-bold">Evidências Visuais (Fotos)</label>
+                            <input type="file" id="fotos" name="fotos[]" accept="image/*" class="form-control" multiple>
+                            <small class="text-muted">Você pode selecionar várias imagens.</small>
                         </div>
 
                         <button class="btn-primary" type="submit" id="btnEnviar">
@@ -159,9 +160,11 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
                 formData.append('id_ambiente', document.getElementById('sala').value);
                 formData.append('id_tipo', document.getElementById('tipo').value);
                 formData.append('descricao', document.getElementById('descricao').value);
-                const fotoInput = document.getElementById('foto');
+                const fotoInput = document.getElementById('fotos');
                 if (fotoInput.files.length > 0) {
-                    formData.append('foto', fotoInput.files[0]);
+                    for (let i = 0; i < fotoInput.files.length; i++) {
+                        formData.append('fotos[]', fotoInput.files[i]);
+                    }
                 }
 
                 const result = await sgmFetch('api/salvar_chamado.php', {

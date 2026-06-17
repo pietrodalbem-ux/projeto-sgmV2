@@ -15,5 +15,5 @@ $sql="SELECT
             FROM chamados";
 $res = $conn->query($sql);
 $dados = $res->fetch_assoc();
-echo json_encode($dados);
+echo json_encode(["success" => true, "data" => $dados]);
 ?>

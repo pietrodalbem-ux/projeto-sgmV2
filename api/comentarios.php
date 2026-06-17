@@ -66,14 +66,16 @@ if ($acao === 'listar') {
 }
 
 if ($acao === 'salvar') {
-    if (!in_array($perfil, ['tecnico', 'gestor'], true)) {
-        echo json_encode(["success" => false, "message" => "Apenas técnicos podem registrar comentários."]);
-        exit;
-    }
     if ($perfil === 'tecnico') {
         $chk = $conn->query("SELECT id_chamado FROM chamados WHERE id_chamado = $id_chamado AND id_tecnico = $user_id");
         if (!$chk || $chk->num_rows === 0) {
             echo json_encode(["success" => false, "message" => "Chamado não atribuído a você."]);
+            exit;
+        }
+    } elseif ($perfil === 'solicitante') {
+        $chk = $conn->query("SELECT id_chamado FROM chamados WHERE id_chamado = $id_chamado AND id_solicitante = $user_id");
+        if (!$chk || $chk->num_rows === 0) {
+            echo json_encode(["success" => false, "message" => "Você não tem permissão para comentar neste chamado."]);
             exit;
         }
     }
@@ -96,23 +98,22 @@ if ($acao === 'salvar') {
         $caminhoVal = $up['path'];
     }
 
-    $temAnexo = colunaExiste($conn, 'chamados_comentarios', 'caminho_arquivo');
-    if ($temAnexo) {
-        $caminho = $caminhoVal ? "'" . $conn->real_escape_string($caminhoVal) . "'" : "NULL";
-        $sql = "INSERT INTO chamados_comentarios (id_chamado, id_usuario, texto, caminho_arquivo) VALUES ($id_chamado, $user_id, '$textoEsc', $caminho)";
-    } else {
-        $sql = "INSERT INTO chamados_comentarios (id_chamado, id_usuario, texto) VALUES ($id_chamado, $user_id, '$textoEsc')";
-    }
+    $caminho = $caminhoVal ? "'" . $conn->real_escape_string($caminhoVal) . "'" : "NULL";
+    $sql = "INSERT INTO chamados_comentarios (id_chamado, id_usuario, texto, caminho_arquivo) VALUES ($id_chamado, $user_id, '$textoEsc', $caminho)";
 
     if ($conn->query($sql)) {
-        if ($perfil === 'tecnico') {
+        // Notifica todos os gestores ativos caso o comentário não tenha sido feito por um gestor
+        if ($perfil !== 'gestor') {
             $nome_usuario = $conn->real_escape_string($_SESSION['user_nome']);
             $titulo = "Novo comentário no chamado #$id_chamado";
-            $mensagem = $conn->real_escape_string("O técnico $nome_usuario registrou uma atualização.");
+            $prefixo = ($perfil === 'tecnico') ? 'O técnico' : 'O solicitante';
+            $mensagem = $conn->real_escape_string("$prefixo $nome_usuario registrou uma atualização.");
             $link = "gestor_detalhes.php?id=$id_chamado";
+            
             $gestores = $conn->query("SELECT id_usuario FROM usuarios WHERE perfil = 'gestor' AND ativo = 1");
             while ($g = $gestores->fetch_assoc()) {
-                $conn->query("INSERT INTO notificacoes (id_usuario, titulo, mensagem, link) VALUES ({$g['id_usuario']}, '$titulo', '$mensagem', '$link')");
+                $id_gestor = (int)$g['id_usuario'];
+                $conn->query("INSERT INTO notificacoes (id_usuario, titulo, mensagem, link) VALUES ($id_gestor, '$titulo', '$mensagem', '$link')");
             }
         }
         echo json_encode(["success" => true, "message" => "Comentário registrado!", "data" => listarComentarios($conn, $id_chamado)]);
@@ -123,8 +124,8 @@ if ($acao === 'salvar') {
 }
 
 if ($acao === 'atualizar') {
-    if ($perfil !== 'tecnico') {
-        echo json_encode(["success" => false, "message" => "Apenas técnicos podem editar comentários."]);
+    if ($perfil !== 'tecnico' && $perfil !== 'gestor') {
+        echo json_encode(["success" => false, "message" => "Apenas técnicos e gestores podem editar comentários."]);
         exit;
     }
 
@@ -166,8 +167,8 @@ if ($acao === 'atualizar') {
 }
 
 if ($acao === 'excluir') {
-    if ($perfil !== 'tecnico') {
-        echo json_encode(["success" => false, "message" => "Apenas técnicos podem excluir comentários."]);
+    if ($perfil !== 'tecnico' && $perfil !== 'gestor') {
+        echo json_encode(["success" => false, "message" => "Apenas técnicos e gestores podem excluir comentários."]);
         exit;
     }
 

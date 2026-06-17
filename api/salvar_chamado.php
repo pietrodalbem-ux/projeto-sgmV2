@@ -26,18 +26,22 @@ $sql = "INSERT INTO chamados (descricao_problema, id_solicitante, id_ambiente, i
 if($conn->query($sql)){
     $id_chamado = $conn->insert_id;
     
-    // Processamento da Foto
-    if(isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK){
+    // Processamento da Foto (Multiplas)
+    if(isset($_FILES['fotos']) && is_array($_FILES['fotos']['error'])){
         $diretorio = "../assets/uploads/";
         if(!is_dir($diretorio)) mkdir($diretorio, 0777, true);
         
-        $extensao = strtolower(pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
-        $nome_arquivo = "abertura_" . uniqid() . "." . $extensao;
-        $caminho_final = $diretorio . $nome_arquivo;
-        
-        if(move_uploaded_file($_FILES['foto']['tmp_name'], $caminho_final)){
-            $caminho_db = "assets/uploads/" . $nome_arquivo;
-            $conn->query("INSERT INTO chamados_anexos (id_chamado, caminho_arquivo, tipo_anexo) VALUES ($id_chamado, '$caminho_db', 'abertura')");
+        foreach($_FILES['fotos']['error'] as $key => $error) {
+            if($error === UPLOAD_ERR_OK) {
+                $extensao = strtolower(pathinfo($_FILES['fotos']['name'][$key], PATHINFO_EXTENSION));
+                $nome_arquivo = "abertura_" . uniqid() . "." . $extensao;
+                $caminho_final = $diretorio . $nome_arquivo;
+                
+                if(move_uploaded_file($_FILES['fotos']['tmp_name'][$key], $caminho_final)){
+                    $caminho_db = "assets/uploads/" . $nome_arquivo;
+                    $conn->query("INSERT INTO chamados_anexos (id_chamado, caminho_arquivo, tipo_anexo) VALUES ($id_chamado, '$caminho_db', 'abertura')");
+                }
+            }
         }
     }
     

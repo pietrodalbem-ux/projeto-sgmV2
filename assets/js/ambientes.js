@@ -87,6 +87,11 @@ function mostrarChamadosVinculados(mensagem, chamados) {
             <td>${c.ambiente_nome || c.solicitante_nome || c.prioridade || '-'}</td>
             <td><a href="gestor_detalhes.php?id=${c.id_chamado}" class="btn btn-sm btn-light">Ver</a></td>
         </tr>`).join('');
+    
+    // Fecha o modal de gerenciamento se estiver aberto para não sobrepor
+    const modalGerenciar = bootstrap.Modal.getInstance(document.getElementById('modalGerenciarBlocos'));
+    if (modalGerenciar) modalGerenciar.hide();
+
     new bootstrap.Modal(document.getElementById('modalChamadosVinculados')).show();
 }
 
@@ -123,7 +128,7 @@ function abrirModalEditar(id, nome, id_bloco) {
     document.getElementById('editBlocoAmbiente').value = id_bloco;
     
     // Mostra o modal usando o Bootstrap via JavaScript
-    const modal = new bootstrap.Modal(document.getElementById('modalEditarAmbiente'));
+    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEditarAmbiente'));
     modal.show();
 }
 
@@ -148,12 +153,8 @@ async function salvarEdicaoAmbiente() {
         const result = await response.json();
         if (result.success) {
             alert(result.message);
-            document.getElementById('closeModalEditarAmbiente').click(); // Fecha o modal
-            
-            // Remove as sobras do backdrop do Bootstrap (caso o modal trave a tela)
-            const backdrop = document.querySelector('.modal-backdrop');
-            if(backdrop) backdrop.remove();
-            
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalEditarAmbiente'));
+            if (modal) modal.hide();
             listarAmbientes(); // Atualiza a tabela com o novo nome
         } else {
             alert("Erro: " + result.message);
@@ -252,8 +253,9 @@ async function abrirModalGerenciarBlocos() {
             tbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted">Nenhum bloco encontrado.</td></tr>`;
         }
         
-        // Abre o modal
-        const modal = new bootstrap.Modal(document.getElementById('modalGerenciarBlocos'));
+        // Abre o modal (usa getOrCreateInstance para evitar múltiplas instâncias)
+        const modalEl = document.getElementById('modalGerenciarBlocos');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
     } catch (error) {
         console.error("Erro ao buscar blocos para gerenciamento:", error);
@@ -261,10 +263,16 @@ async function abrirModalGerenciarBlocos() {
 }
 
 function abrirEditarBloco(id, nome, descricao) {
+    // Fecha o modal de gerenciamento antes de abrir o de edição
+    const modalGerenciar = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalGerenciarBlocos'));
+    if (modalGerenciar) modalGerenciar.hide();
+
     document.getElementById('editIdBloco').value = id;
     document.getElementById('editNomeBloco').value = nome;
     document.getElementById('editDescBloco').value = descricao || '';
-    new bootstrap.Modal(document.getElementById('modalEditarBloco')).show();
+    
+    const modalEditar = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEditarBloco'));
+    modalEditar.show();
 }
 
 async function salvarEdicaoBloco() {
@@ -279,7 +287,7 @@ async function salvarEdicaoBloco() {
     });
     const result = await res.json();
     if (result.success) {
-        bootstrap.Modal.getInstance(document.getElementById('modalEditarBloco')).hide();
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEditarBloco')).hide();
         abrirModalGerenciarBlocos();
         listarBlocosParaSelect();
         listarAmbientes();
@@ -303,6 +311,9 @@ async function excluirBloco(id_bloco) {
             listarBlocosParaSelect();
             listarAmbientes();
         } else if (result.chamados_vinculados && result.chamados_vinculados.length) {
+            // Fecha o modal de gerenciamento para não sobrepor com a lista de bloqueio
+            const modalGerenciar = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalGerenciarBlocos'));
+            if (modalGerenciar) modalGerenciar.hide();
             mostrarChamadosVinculados(result.message, result.chamados_vinculados);
         } else {
             alert('Erro: ' + result.message);

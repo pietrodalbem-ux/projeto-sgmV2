@@ -1,10 +1,9 @@
 <?php
 session_start();
+date_default_timezone_set('America/Sao_Paulo');
 require_once '../config/database.php';
 
 // Include FPDF library
-// You need to download FPDF and place it in a 'lib/fpdf' folder, e.g., c:\xampp\htdocs\2025\projeto-sgm\lib\fpdf\fpdf.php
-// Download from: http://www.fpdf.org/
 require('../lib/fpdf/fpdf.php'); // Adjust path as necessary
 
 if (!isset($_SESSION['user_id']) || $_SESSION['user_perfil'] !== 'gestor') {
@@ -67,10 +66,22 @@ $result = $conn->query($sql);
 
 $pdf = new FPDF();
 $pdf->AddPage();
+
+// Adicionar a engrenagem
+$pdf->Image('../assets/img/engrenagem.png', 10, 8, 15);
+
 $pdf->SetFont('Arial', 'B', 16);
 $pdf->Cell(0, 10, utf8_decode($title), 0, 1, 'C');
+
+$meses = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+$gerado_em = "Gerado em " . date('d') . " de " . $meses[(int)date('m')] . " de " . date('Y') . " às " . date('H:i');
+
+$pdf->SetFont('Arial', 'I', 10);
+$pdf->SetTextColor(100, 100, 100);
+$pdf->Cell(0, 5, utf8_decode($gerado_em), 0, 1, 'C');
 $pdf->Ln(10);
 
+$pdf->SetTextColor(0, 0, 0);
 $pdf->SetFont('Arial', 'B', 10);
 $pdf->SetFillColor(200, 220, 255);
 $pdf->Cell(20, 7, utf8_decode('ID'), 1, 0, 'C', true);
@@ -101,4 +112,3 @@ if ($result && $result->num_rows > 0) {
 
 $pdf->Output('I', 'relatorio_chamados.pdf');
 $conn->close();
-?>

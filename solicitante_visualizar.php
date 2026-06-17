@@ -51,11 +51,13 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
                         <div class="col-md-6"><label class="text-muted small fw-bold text-uppercase">Data de Abertura</label><p id="txtData" class="fw-medium">—</p></div>
                         <div class="col-12"><label class="text-muted small fw-bold text-uppercase">Descrição</label><div id="txtDescricao" class="p-3 bg-main rounded border">—</div></div>
                         <div class="col-12" id="boxFoto" style="display:none;">
-                            <label class="text-muted small fw-bold text-uppercase">Foto</label><br>
-                            <img id="imgAnexo" src="" style="max-height:250px;border-radius:8px;cursor:pointer;" onclick="window.open(this.src,'_blank')">
+                            <label class="text-muted small fw-bold text-uppercase d-block mb-1">Evidências Visuais</label>
+                            <div id="containerFotos" class="d-flex flex-wrap gap-2"></div>
                         </div>
                     </div>
-                    <div class="d-flex gap-2 mt-4 flex-wrap" id="acoesChamado"></div>
+                    <div class="d-flex gap-2 mt-4 mb-4 flex-wrap" id="acoesChamado"></div>
+
+
                 </div>
             </div>
         </main>
@@ -64,6 +66,16 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const idChamado = <?= $id ?>;
+        
+        let modalVisualizar;
+        document.addEventListener('DOMContentLoaded', () => {
+            modalVisualizar = new bootstrap.Modal(document.getElementById('modalVerImagem'));
+        });
+
+        function abrirModalImagem(src) {
+            document.getElementById('imgModalVisualizar').src = src;
+            modalVisualizar.show();
+        }
 
         async function carregar() {
             try {
@@ -81,9 +93,12 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
                 document.getElementById('txtDescricao').innerText = c.descricao_problema;
                 const badge = document.getElementById('badgeStatus');
                 badge.innerText = c.status.toUpperCase().replace('_', ' ');
-                if (c.foto) {
+                if (c.fotos && c.fotos.length > 0) {
                     document.getElementById('boxFoto').style.display = 'block';
-                    document.getElementById('imgAnexo').src = c.foto;
+                    document.getElementById('containerFotos').innerHTML = c.fotos.map(f => `<img src="${f}" style="max-height:250px;border-radius:8px;cursor:pointer;" onclick="abrirModalImagem(this.src)">`).join('');
+                } else if (c.foto) {
+                    document.getElementById('boxFoto').style.display = 'block';
+                    document.getElementById('containerFotos').innerHTML = `<img src="${c.foto}" style="max-height:250px;border-radius:8px;cursor:pointer;" onclick="abrirModalImagem(this.src)">`;
                 }
                 const acoes = document.getElementById('acoesChamado');
                 acoes.innerHTML = `<a href="solicitante_dashboard.php" class="btn btn-light">Voltar</a>`;
@@ -97,6 +112,8 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
                 document.getElementById('alertaErro').innerText = 'Erro ao carregar chamado.';
             }
         }
+
+
 
         async function excluirChamado() {
             if (!confirm('Tem certeza que deseja excluir este chamado? Esta ação não pode ser desfeita.')) return;
@@ -115,5 +132,17 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
 
         carregar();
     </script>
+
+    <!-- Modal para visualização de imagem em tamanho maior -->
+    <div class="modal fade" id="modalVerImagem" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content bg-transparent border-0">
+                <div class="modal-body p-0 text-center position-relative">
+                    <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    <img id="imgModalVisualizar" src="" class="img-fluid rounded shadow-lg" style="max-height: 85vh; border: 3px solid rgba(255, 255, 255, 0.25);">
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

@@ -14,7 +14,7 @@ if ($id_chamado > 0) {
     $sql = "SELECT * FROM chamados_anexos WHERE id_chamado = $id_chamado";
     $result = $conn->query($sql);
     $anexos = $result->fetch_all(MYSQLI_ASSOC);
-    echo json_encode($anexos);
+    echo json_encode(["success" => true, "data" => $anexos]);
 } else {
-    echo json_encode([]);
+    echo json_encode(["success" => true, "data" => []]);
 }

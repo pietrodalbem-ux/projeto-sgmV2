@@ -135,6 +135,7 @@ CREATE TABLE IF NOT EXISTS chamados_comentarios (
     data_envio DATETIME DEFAULT CURRENT_TIMESTAMP,
     id_chamado INT NOT NULL,
     id_usuario INT NOT NULL,
+    caminho_arquivo VARCHAR(255) DEFAULT NULL,
     
     PRIMARY KEY (id_comentario),
     

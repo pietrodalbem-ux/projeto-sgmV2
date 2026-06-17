@@ -23,7 +23,8 @@ if ($acao === 'listar') {
     
     echo json_encode([
         "success" => true,
-        "notificacoes" => $notif,
+        "data" => $notif,
+        "notificacoes" => $notif, // Mantido para compatibilidade com scripts antigos
         "unreadCount" => $unreadCount
     ]);
 } 

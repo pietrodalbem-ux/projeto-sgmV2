@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 10/06/2026 às 16:10
+-- Tempo de geração: 17/06/2026 às 13:32
 -- Versão do servidor: 10.4.32-MariaDB
 -- Versão do PHP: 8.2.12
 
@@ -61,8 +61,7 @@ CREATE TABLE `blocos` (
 INSERT INTO `blocos` (`id_bloco`, `nome`, `descricao`) VALUES
 (1, 'Bloco Administrativo', NULL),
 (2, 'Produção', NULL),
-(5, 'BatCaverna', 'Escura, muitos morcegos...'),
-(6, 'Bloco civil', 'Industria belica');
+(5, 'BatCaverna', 'Escura, muitos morcegos...');
 
 -- --------------------------------------------------------
 
@@ -97,7 +96,8 @@ INSERT INTO `chamados` (`id_chamado`, `descricao_problema`, `data_abertura`, `st
 (6, 'O morcego fugiu, e destruiu minha privada, se vira men, e salva nois chefe', '2026-05-13 14:00:51', 'agendado', 'media', '1999-01-04', NULL, NULL, NULL, 9, 10, 4, 1),
 (7, 'Houve uma queda de agua no meio do corredor', '2026-05-29 11:28:24', 'agendado', 'alta', '2008-06-15', NULL, NULL, NULL, 3, 2, 3, 2),
 (8, 'Ta tudo quebrado, nada funciona', '2026-06-10 08:13:10', 'agendado', 'alta', '2026-06-10', NULL, NULL, NULL, 3, 7, 4, 3),
-(9, 'Houve um vazamento nos canos', '2026-06-10 08:17:08', 'aberto', 'baixa', NULL, NULL, NULL, NULL, 5, NULL, 3, 2);
+(9, 'Houve um vazamento nos canos', '2026-06-10 08:17:08', 'aberto', 'baixa', NULL, NULL, NULL, NULL, 5, NULL, 3, 2),
+(10, 'ffhsjdfs', '2026-06-17 08:23:44', 'aberto', 'baixa', NULL, NULL, NULL, NULL, 3, NULL, 3, 2);
 
 -- --------------------------------------------------------
 
@@ -124,7 +124,8 @@ INSERT INTO `chamados_anexos` (`id_anexo`, `caminho_arquivo`, `tipo_anexo`, `dat
 (5, 'assets/uploads/abertura_6a04ae43a3759.jpg', 'abertura', '2026-05-13 14:00:51', 6),
 (6, 'assets/uploads/abertura_6a19a2883adc8.gif', 'abertura', '2026-05-29 11:28:24', 7),
 (7, 'assets/uploads/abertura_6a2946c6a19d0.jpg', 'abertura', '2026-06-10 08:13:10', 8),
-(8, 'assets/uploads/abertura_6a2947b444769.jpg', 'abertura', '2026-06-10 08:17:08', 9);
+(8, 'assets/uploads/abertura_6a2947b444769.jpg', 'abertura', '2026-06-10 08:17:08', 9),
+(9, 'assets/uploads/abertura_6a3283c0c9bf6.jpg', 'abertura', '2026-06-17 08:23:44', 10);
 
 -- --------------------------------------------------------
 
@@ -137,19 +138,21 @@ CREATE TABLE `chamados_comentarios` (
   `texto` text NOT NULL,
   `data_envio` datetime DEFAULT current_timestamp(),
   `id_chamado` int(11) NOT NULL,
-  `id_usuario` int(11) NOT NULL
+  `id_usuario` int(11) NOT NULL,
+  `caminho_arquivo` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Despejando dados para a tabela `chamados_comentarios`
 --
 
-INSERT INTO `chamados_comentarios` (`id_comentario`, `texto`, `data_envio`, `id_chamado`, `id_usuario`) VALUES
-(8, 'Morcego me mordeu, tenho medo de virar vampiro :(((', '2026-05-13 14:03:20', 6, 10),
-(9, 'Seeeloko', '2026-05-13 14:50:35', 6, 10),
-(10, 'Falta cimento', '2026-05-13 15:39:47', 6, 10),
-(11, 'Oxe, por que tem uma blusa ai?', '2026-05-15 07:42:29', 5, 2),
-(12, 'Muahaahaha', '2026-06-10 08:51:34', 3, 6);
+INSERT INTO `chamados_comentarios` (`id_comentario`, `texto`, `data_envio`, `id_chamado`, `id_usuario`, `caminho_arquivo`) VALUES
+(8, 'Morcego me mordeu, tenho medo de virar vampiro :(((', '2026-05-13 14:03:20', 6, 10, NULL),
+(9, 'Seeeloko', '2026-05-13 14:50:35', 6, 10, NULL),
+(10, 'Falta cimento', '2026-05-13 15:39:47', 6, 10, NULL),
+(11, 'Oxe, por que tem uma blusa ai?', '2026-05-15 07:42:29', 5, 2, NULL),
+(12, 'Muahaahaha', '2026-06-10 08:51:34', 3, 6, NULL),
+(13, 'akjasjafsla', '2026-06-10 11:50:31', 3, 6, NULL);
 
 -- --------------------------------------------------------
 
@@ -188,9 +191,12 @@ INSERT INTO `notificacoes` (`id_notificacao`, `titulo`, `mensagem`, `link`, `lid
 (20, 'Novo comentário no chamado #5', 'O técnico João Técnico adicionou uma observação: Oxe, por que tem uma blusa ai?', 'gestor_detalhes.php?id=5', 1, '2026-05-15 07:42:29', 1),
 (21, 'Novo comentário no chamado #5', 'O técnico João Técnico adicionou uma observação: Oxe, por que tem uma blusa ai?', 'gestor_detalhes.php?id=5', 0, '2026-05-15 07:42:29', 4),
 (22, 'Novo comentário no chamado #5', 'O técnico João Técnico adicionou uma observação: Oxe, por que tem uma blusa ai?', 'gestor_detalhes.php?id=5', 0, '2026-05-15 07:42:29', 8),
-(23, 'Novo comentário no chamado #3', 'O técnico Antonela adicionou uma observação: Muahaahaha', 'gestor_detalhes.php?id=3', 0, '2026-06-10 08:51:34', 1),
+(23, 'Novo comentário no chamado #3', 'O técnico Antonela adicionou uma observação: Muahaahaha', 'gestor_detalhes.php?id=3', 1, '2026-06-10 08:51:34', 1),
 (24, 'Novo comentário no chamado #3', 'O técnico Antonela adicionou uma observação: Muahaahaha', 'gestor_detalhes.php?id=3', 0, '2026-06-10 08:51:34', 4),
-(25, 'Novo comentário no chamado #3', 'O técnico Antonela adicionou uma observação: Muahaahaha', 'gestor_detalhes.php?id=3', 0, '2026-06-10 08:51:34', 8);
+(25, 'Novo comentário no chamado #3', 'O técnico Antonela adicionou uma observação: Muahaahaha', 'gestor_detalhes.php?id=3', 0, '2026-06-10 08:51:34', 8),
+(26, 'Novo comentário no chamado #3', 'O técnico Antonela registrou uma atualização.', 'gestor_detalhes.php?id=3', 1, '2026-06-10 11:50:31', 1),
+(27, 'Novo comentário no chamado #3', 'O técnico Antonela registrou uma atualização.', 'gestor_detalhes.php?id=3', 0, '2026-06-10 11:50:31', 4),
+(28, 'Novo comentário no chamado #3', 'O técnico Antonela registrou uma atualização.', 'gestor_detalhes.php?id=3', 0, '2026-06-10 11:50:31', 8);
 
 -- --------------------------------------------------------
 
@@ -328,25 +334,25 @@ ALTER TABLE `blocos`
 -- AUTO_INCREMENT de tabela `chamados`
 --
 ALTER TABLE `chamados`
-  MODIFY `id_chamado` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id_chamado` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT de tabela `chamados_anexos`
 --
 ALTER TABLE `chamados_anexos`
-  MODIFY `id_anexo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id_anexo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT de tabela `chamados_comentarios`
 --
 ALTER TABLE `chamados_comentarios`
-  MODIFY `id_comentario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id_comentario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT de tabela `notificacoes`
 --
 ALTER TABLE `notificacoes`
-  MODIFY `id_notificacao` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `id_notificacao` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT de tabela `tipos_servico`

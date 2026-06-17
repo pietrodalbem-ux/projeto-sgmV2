@@ -170,13 +170,20 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
         <div class="modal-dialog modal-lg"><div class="modal-content card p-4">
             <h5 class="card-title mb-3 text-danger">Exclusão bloqueada</h5>
             <p id="chamadosVinculadosMsg" class="text-muted small"></p>
-            <div class="table-responsive">
+            <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
                 <table class="table mb-0">
                     <thead><tr><th>ID</th><th>Descrição</th><th>Status</th><th>Info</th><th></th></tr></thead>
                     <tbody id="chamadosVinculadosBody"></tbody>
                 </table>
             </div>
-            <button class="btn btn-light w-100 mt-3" data-bs-dismiss="modal">Fechar</button>
+            
+            <div class="mt-4 p-3 border border-danger rounded bg-light">
+                <p class="text-danger small mb-2 fw-bold">Para forçar a exclusão (apagando todos os vínculos acima), digite "deletar" abaixo:</p>
+                <input type="text" class="form-control mb-2 border-danger" id="inputConfirmarDelecao" placeholder="deletar" onkeyup="verificarInputDelecao()">
+                <button class="btn btn-danger w-100 fw-bold" id="btnConfirmarDelecao" disabled onclick="forcarExclusao()">Confirmar Exclusão</button>
+            </div>
+
+            <button class="btn btn-light w-100 mt-3" data-bs-dismiss="modal">Cancelar</button>
         </div></div>
     </div>
 

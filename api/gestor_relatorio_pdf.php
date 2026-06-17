@@ -1,6 +1,7 @@
 <?php
 // api/gestor_relatorio_pdf.php
 session_start();
+date_default_timezone_set('America/Sao_Paulo');
 require_once '../config/database.php';
 require_once '../vendor/autoload.php'; // dompdf autoloader
 
@@ -72,7 +73,21 @@ $rows = $result->fetch_all(MYSQLI_ASSOC);
 
 // ---------- Monta HTML usando template ----------
 ob_start();
-$periodLabel = ucfirst($period);
+$periodosPt = [
+    'day' => 'Hoje',
+    'week' => 'Esta Semana',
+    'month' => 'Este Mês',
+    'year' => 'Este Ano',
+    'custom' => 'Personalizado'
+];
+$periodLabel = $periodosPt[$period] ?? ucfirst($period);
+$startBr = date('d/m/Y', strtotime($start));
+$endBr = date('d/m/Y', strtotime($end));
+
+// Ler engrenagem como base64
+$gearPath = '../assets/img/engrenagem.png';
+$gearBase64 = file_exists($gearPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($gearPath)) : '';
+
 include '../layout/relatorio_template.php';
 $html = ob_get_clean();
 

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 17/06/2026 às 13:32
+-- Tempo de geração: 17/06/2026 às 16:40
 -- Versão do servidor: 10.4.32-MariaDB
 -- Versão do PHP: 8.2.12
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Banco de dados: `sgm_db`
+-- Banco de dados: `sgm_db_yasmin`
 --
 
 -- --------------------------------------------------------
@@ -91,13 +91,10 @@ CREATE TABLE `chamados` (
 
 INSERT INTO `chamados` (`id_chamado`, `descricao_problema`, `data_abertura`, `status`, `prioridade`, `data_previsao_conclusao`, `solucao_tecnica`, `tempo_gasto_minutos`, `data_fechamento`, `id_solicitante`, `id_tecnico`, `id_ambiente`, `id_tipo_servico`) VALUES
 (3, 'Pode não man', '2026-05-13 11:22:50', 'em_execucao', 'alta', '2026-05-14', NULL, NULL, NULL, 5, 6, 1, 2),
-(4, 'asa', '2026-05-13 11:37:45', 'em_execucao', 'alta', '5000-06-14', NULL, NULL, NULL, 3, 7, 1, 2),
 (5, 'Pode não man, a eletrica esta com problema de ligar', '2026-05-13 13:35:08', 'concluido', 'alta', '2008-06-14', NULL, NULL, NULL, 5, 2, 3, 1),
 (6, 'O morcego fugiu, e destruiu minha privada, se vira men, e salva nois chefe', '2026-05-13 14:00:51', 'agendado', 'media', '1999-01-04', NULL, NULL, NULL, 9, 10, 4, 1),
-(7, 'Houve uma queda de agua no meio do corredor', '2026-05-29 11:28:24', 'agendado', 'alta', '2008-06-15', NULL, NULL, NULL, 3, 2, 3, 2),
-(8, 'Ta tudo quebrado, nada funciona', '2026-06-10 08:13:10', 'agendado', 'alta', '2026-06-10', NULL, NULL, NULL, 3, 7, 4, 3),
-(9, 'Houve um vazamento nos canos', '2026-06-10 08:17:08', 'aberto', 'baixa', NULL, NULL, NULL, NULL, 5, NULL, 3, 2),
-(10, 'ffhsjdfs', '2026-06-17 08:23:44', 'aberto', 'baixa', NULL, NULL, NULL, NULL, 3, NULL, 3, 2);
+(8, 'Ta tudo quebrado, nada funciona', '2026-06-10 08:13:10', 'em_execucao', 'alta', '2026-06-10', NULL, NULL, NULL, 3, 7, 4, 3),
+(11, 'akjdkafnajf', '2026-06-17 10:53:19', 'aberto', 'baixa', NULL, NULL, NULL, NULL, 3, NULL, 3, 2);
 
 -- --------------------------------------------------------
 
@@ -119,13 +116,11 @@ CREATE TABLE `chamados_anexos` (
 
 INSERT INTO `chamados_anexos` (`id_anexo`, `caminho_arquivo`, `tipo_anexo`, `data_upload`, `id_chamado`) VALUES
 (2, 'assets/uploads/abertura_6a04893a96fbf.png', 'abertura', '2026-05-13 11:22:50', 3),
-(3, 'assets/uploads/abertura_6a048cb9efc9e.jpg', 'abertura', '2026-05-13 11:37:45', 4),
 (4, 'assets/uploads/abertura_6a04a83cd1452.png', 'abertura', '2026-05-13 13:35:08', 5),
 (5, 'assets/uploads/abertura_6a04ae43a3759.jpg', 'abertura', '2026-05-13 14:00:51', 6),
-(6, 'assets/uploads/abertura_6a19a2883adc8.gif', 'abertura', '2026-05-29 11:28:24', 7),
 (7, 'assets/uploads/abertura_6a2946c6a19d0.jpg', 'abertura', '2026-06-10 08:13:10', 8),
-(8, 'assets/uploads/abertura_6a2947b444769.jpg', 'abertura', '2026-06-10 08:17:08', 9),
-(9, 'assets/uploads/abertura_6a3283c0c9bf6.jpg', 'abertura', '2026-06-17 08:23:44', 10);
+(10, 'assets/uploads/abertura_6a32a6cf4a2ca.jpg', 'abertura', '2026-06-17 10:53:19', 11),
+(11, 'assets/uploads/abertura_6a32a6cf4b7ec.jpg', 'abertura', '2026-06-17 10:53:19', 11);
 
 -- --------------------------------------------------------
 
@@ -152,7 +147,8 @@ INSERT INTO `chamados_comentarios` (`id_comentario`, `texto`, `data_envio`, `id_
 (10, 'Falta cimento', '2026-05-13 15:39:47', 6, 10, NULL),
 (11, 'Oxe, por que tem uma blusa ai?', '2026-05-15 07:42:29', 5, 2, NULL),
 (12, 'Muahaahaha', '2026-06-10 08:51:34', 3, 6, NULL),
-(13, 'akjasjafsla', '2026-06-10 11:50:31', 3, 6, NULL);
+(13, 'akjasjafsla', '2026-06-10 11:50:31', 3, 6, 'assets/uploads/comentario_6a328fe03e83b.jpg'),
+(16, 'isso memo', '2026-06-17 09:05:37', 5, 2, 'assets/uploads/comentario_6a328d9168065.jpg');
 
 -- --------------------------------------------------------
 
@@ -196,7 +192,19 @@ INSERT INTO `notificacoes` (`id_notificacao`, `titulo`, `mensagem`, `link`, `lid
 (25, 'Novo comentário no chamado #3', 'O técnico Antonela adicionou uma observação: Muahaahaha', 'gestor_detalhes.php?id=3', 0, '2026-06-10 08:51:34', 8),
 (26, 'Novo comentário no chamado #3', 'O técnico Antonela registrou uma atualização.', 'gestor_detalhes.php?id=3', 1, '2026-06-10 11:50:31', 1),
 (27, 'Novo comentário no chamado #3', 'O técnico Antonela registrou uma atualização.', 'gestor_detalhes.php?id=3', 0, '2026-06-10 11:50:31', 4),
-(28, 'Novo comentário no chamado #3', 'O técnico Antonela registrou uma atualização.', 'gestor_detalhes.php?id=3', 0, '2026-06-10 11:50:31', 8);
+(28, 'Novo comentário no chamado #3', 'O técnico Antonela registrou uma atualização.', 'gestor_detalhes.php?id=3', 0, '2026-06-10 11:50:31', 8),
+(29, 'Novo comentário no chamado #5', 'O técnico João Técnico registrou uma atualização.', 'gestor_detalhes.php?id=5', 1, '2026-06-17 08:53:05', 1),
+(30, 'Novo comentário no chamado #5', 'O técnico João Técnico registrou uma atualização.', 'gestor_detalhes.php?id=5', 0, '2026-06-17 08:53:05', 4),
+(31, 'Novo comentário no chamado #5', 'O técnico João Técnico registrou uma atualização.', 'gestor_detalhes.php?id=5', 0, '2026-06-17 08:53:05', 8),
+(32, 'Novo comentário no chamado #5', 'O técnico João Técnico registrou uma atualização.', 'gestor_detalhes.php?id=5', 1, '2026-06-17 08:57:30', 1),
+(33, 'Novo comentário no chamado #5', 'O técnico João Técnico registrou uma atualização.', 'gestor_detalhes.php?id=5', 0, '2026-06-17 08:57:30', 4),
+(34, 'Novo comentário no chamado #5', 'O técnico João Técnico registrou uma atualização.', 'gestor_detalhes.php?id=5', 0, '2026-06-17 08:57:30', 8),
+(35, 'Novo comentário no chamado #5', 'O técnico João Técnico registrou uma atualização.', 'gestor_detalhes.php?id=5', 1, '2026-06-17 09:05:37', 1),
+(36, 'Novo comentário no chamado #5', 'O técnico João Técnico registrou uma atualização.', 'gestor_detalhes.php?id=5', 0, '2026-06-17 09:05:37', 4),
+(37, 'Novo comentário no chamado #5', 'O técnico João Técnico registrou uma atualização.', 'gestor_detalhes.php?id=5', 0, '2026-06-17 09:05:37', 8),
+(38, 'Novo comentário no chamado #7', 'O técnico João Técnico registrou uma atualização.', 'gestor_detalhes.php?id=7', 1, '2026-06-17 11:09:51', 1),
+(39, 'Novo comentário no chamado #7', 'O técnico João Técnico registrou uma atualização.', 'gestor_detalhes.php?id=7', 0, '2026-06-17 11:09:51', 4),
+(40, 'Novo comentário no chamado #7', 'O técnico João Técnico registrou uma atualização.', 'gestor_detalhes.php?id=7', 0, '2026-06-17 11:09:51', 8);
 
 -- --------------------------------------------------------
 
@@ -250,7 +258,8 @@ INSERT INTO `usuarios` (`id_usuario`, `nome`, `email`, `senha_hash`, `perfil`, `
 (7, 'Malevola', 'malemale@sgm.com', '$2y$10$l34iZfCLUOhkzIt.455UUeV2caq4XiUdqr0IZjaccivn35fVagap2', 'tecnico', 1, '2026-05-13 11:30:20'),
 (8, 'Bruce', 'batman@wayne.com', '$2y$10$JWZt6ofXJf5gJLB3yKGO.OANhmYTtLVd1einNlkePDe.VxEkEuQby', 'gestor', 1, '2026-05-13 13:44:21'),
 (9, 'Robin Hood', 'robin@azul.com', '$2y$10$OVeZ5zv39YwwvL0UzbxDLewRSB8ZXpzxS3Jomz7LHbPutOH33PxxO', 'solicitante', 1, '2026-05-13 13:58:35'),
-(10, 'Arfield', 'alfredo@sgm.com', '$2y$10$81zbO5GyaOaeTIG3O0u5rertyWBwIzDmq.eCk6PjMvHCMFZDi9g3a', 'tecnico', 1, '2026-05-13 14:01:29');
+(10, 'Arfield', 'alfredo@sgm.com', '$2y$10$81zbO5GyaOaeTIG3O0u5rertyWBwIzDmq.eCk6PjMvHCMFZDi9g3a', 'tecnico', 1, '2026-05-13 14:01:29'),
+(11, 'luizinho chadzinho', 'LZAO@328', '$2y$10$CZ2F0yuGZwGuSLDzsCKX2uv92vKB2xFUwd9p/olVgyKdQ0JBRA9n6', 'tecnico', 1, '2026-06-17 11:32:16');
 
 --
 -- Índices para tabelas despejadas
@@ -334,25 +343,25 @@ ALTER TABLE `blocos`
 -- AUTO_INCREMENT de tabela `chamados`
 --
 ALTER TABLE `chamados`
-  MODIFY `id_chamado` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id_chamado` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT de tabela `chamados_anexos`
 --
 ALTER TABLE `chamados_anexos`
-  MODIFY `id_anexo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id_anexo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT de tabela `chamados_comentarios`
 --
 ALTER TABLE `chamados_comentarios`
-  MODIFY `id_comentario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id_comentario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT de tabela `notificacoes`
 --
 ALTER TABLE `notificacoes`
-  MODIFY `id_notificacao` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `id_notificacao` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT de tabela `tipos_servico`
@@ -364,7 +373,7 @@ ALTER TABLE `tipos_servico`
 -- AUTO_INCREMENT de tabela `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- Restrições para tabelas despejadas

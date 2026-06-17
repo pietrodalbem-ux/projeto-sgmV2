@@ -188,10 +188,10 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
 
                 if (c.fotos && c.fotos.length > 0) {
                     document.getElementById('boxFoto').style.display = 'block';
-                    document.getElementById('containerFotos').innerHTML = c.fotos.map(f => `<img src="${f}" style="max-height: 250px; border-radius: 8px; cursor: pointer;" onclick="abrirModalImagem(this.src)">`).join('');
+                    document.getElementById('containerFotos').innerHTML = c.fotos.map(f => `<img src="${f}" style="max-height: 250px; max-width: 100%; object-fit: contain; border-radius: 8px; cursor: pointer;" onclick="abrirModalImagem(this.src)">`).join('');
                 } else if (c.foto) {
                     document.getElementById('boxFoto').style.display = 'block';
-                    document.getElementById('containerFotos').innerHTML = `<img src="${c.foto}" style="max-height: 250px; border-radius: 8px; cursor: pointer;" onclick="abrirModalImagem(this.src)">`;
+                    document.getElementById('containerFotos').innerHTML = `<img src="${c.foto}" style="max-height: 250px; max-width: 100%; object-fit: contain; border-radius: 8px; cursor: pointer;" onclick="abrirModalImagem(this.src)">`;
                 }
 
                 carregarMural();

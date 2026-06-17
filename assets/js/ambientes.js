@@ -2,6 +2,13 @@
 const URL_API_AMBIENTE = () => sgmUrl('api/ambientes.php');
 const URL_API_BLOCO = () => sgmUrl('api/api_bloco.php'); 
 
+let contextoDelecao = { id: null, tipo: null };
+
+function verificarInputDelecao() {
+    const input = document.getElementById('inputConfirmarDelecao').value;
+    document.getElementById('btnConfirmarDelecao').disabled = (input.trim().toLowerCase() !== 'deletar');
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     listarAmbientes();
     listarBlocosParaSelect();
@@ -74,7 +81,11 @@ async function criarAmbiente() {
     }
 }
 
-function mostrarChamadosVinculados(mensagem, chamados) {
+function mostrarChamadosVinculados(mensagem, chamados, idContexto, tipoContexto) {
+    contextoDelecao = { id: idContexto, tipo: tipoContexto };
+    document.getElementById('inputConfirmarDelecao').value = '';
+    document.getElementById('btnConfirmarDelecao').disabled = true;
+
     const tbody = document.getElementById('chamadosVinculadosBody');
     const msg = document.getElementById('chamadosVinculadosMsg');
     if (!tbody) { alert(mensagem); return; }
@@ -107,13 +118,49 @@ async function excluirAmbiente(id_ambiente) {
             if (result.success) {
                 listarAmbientes();
             } else if (result.chamados_vinculados && result.chamados_vinculados.length) {
-                mostrarChamadosVinculados(result.message, result.chamados_vinculados);
+                mostrarChamadosVinculados(result.message, result.chamados_vinculados, id_ambiente, 'ambiente');
             } else {
                 alert("Erro: " + result.message);
             }
         } catch (error) {
             console.error("Erro:", error);
         }
+    }
+}
+
+async function forcarExclusao() {
+    const url = contextoDelecao.tipo === 'bloco' ? URL_API_BLOCO() : URL_API_AMBIENTE();
+    const payload = contextoDelecao.tipo === 'bloco' ? { id_bloco: contextoDelecao.id, force: true } : { id_ambiente: contextoDelecao.id, force: true };
+    
+    document.getElementById('btnConfirmarDelecao').disabled = true;
+    document.getElementById('btnConfirmarDelecao').innerText = "Processando...";
+    
+    try {
+        const response = await fetch(url, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(result.message);
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalChamadosVinculados'));
+            if (modal) modal.hide();
+            
+            if (contextoDelecao.tipo === 'bloco') {
+                abrirModalGerenciarBlocos();
+            }
+            listarBlocosParaSelect();
+            listarAmbientes();
+        } else {
+            alert('Erro: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Erro na exclusão forçada:', error);
+        alert('Erro ao processar exclusão forçada.');
+    } finally {
+        document.getElementById('btnConfirmarDelecao').innerText = "Confirmar Exclusão";
     }
 }
 
@@ -314,7 +361,7 @@ async function excluirBloco(id_bloco) {
             // Fecha o modal de gerenciamento para não sobrepor com a lista de bloqueio
             const modalGerenciar = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalGerenciarBlocos'));
             if (modalGerenciar) modalGerenciar.hide();
-            mostrarChamadosVinculados(result.message, result.chamados_vinculados);
+            mostrarChamadosVinculados(result.message, result.chamados_vinculados, id_bloco, 'bloco');
         } else {
             alert('Erro: ' + result.message);
         }

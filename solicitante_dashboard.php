@@ -63,7 +63,7 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
 
             <div class="p-4">
                 <div class="d-flex justify-content-end mb-4">
-                    <a href="solicitante_abrir_chamado.php" class="btn-primary" style="width: auto; text-decoration: none; padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <a href="solicitante_abrir_chamado.php" class="btn-primary" style="text-decoration: none; padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 0.5rem; white-space: nowrap;">
                         <i class="ph ph-plus"></i>
                         Nova solicitação
                     </a>
@@ -77,8 +77,8 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
                                     <th>ID</th>
                                     <th>Foto</th>
                                     <th>Local</th>
-                                    <th>Descrição</th>
-                                    <th>Data</th>
+                                    <th class="d-none d-md-table-cell">Descrição</th>
+                                    <th class="d-none d-md-table-cell">Data</th>
                                     <th>Status</th>
                                     <th class="text-center">Ações</th>
                                 </tr>
@@ -149,10 +149,10 @@ $primeira_letra = strtoupper(substr($nome_exibicao, 0, 1));
                         <td class="fw-bold text-muted">#${c.id_chamado}</td>
                         <td>${thumbHtml}</td>
                         <td class="fw-medium">${c.bloco_nome} - ${c.ambiente_nome}</td>
-                        <td class="text-truncate" style="max-width: 200px;">${c.descricao_problema}</td>
-                        <td>${new Date(c.data_abertura).toLocaleDateString()}</td>
+                        <td class="text-truncate d-none d-md-table-cell" style="max-width: 200px;">${c.descricao_problema}</td>
+                        <td class="d-none d-md-table-cell">${new Date(c.data_abertura).toLocaleDateString()}</td>
                         <td><span class="badge ${statusStyles[c.status] || 'status-aberto'}">${c.status.toUpperCase().replace('_', ' ')}</span></td>
-                        <td class="text-center">
+                        <td class="text-center text-nowrap">
                             <a href="solicitante_visualizar.php?id=${c.id_chamado}" class="btn btn-sm btn-light" title="Visualizar"><i class="ph ph-eye"></i></a>
                             ${acoesAberto}
                         </td>

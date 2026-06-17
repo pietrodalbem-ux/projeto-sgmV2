@@ -95,15 +95,47 @@ switch ($method) {
         }
 
         $id_bloco = (int)$data->id_bloco;
-        $vinculados = chamadosVinculadosBloco($conn, $id_bloco);
+        $force = isset($data->force) && $data->force === true;
 
-        if (count($vinculados) > 0) {
-            echo json_encode([
-                "success" => false,
-                "message" => "Este bloco não pode ser excluído pois possui chamados vinculados aos seus ambientes.",
-                "chamados_vinculados" => $vinculados
-            ]);
-            exit;
+        if (!$force) {
+            $vinculados = chamadosVinculadosBloco($conn, $id_bloco);
+
+            if (count($vinculados) > 0) {
+                echo json_encode([
+                    "success" => false,
+                    "message" => "Este bloco não pode ser excluído pois possui chamados vinculados aos seus ambientes.",
+                    "chamados_vinculados" => $vinculados
+                ]);
+                exit;
+            }
+        } else {
+            // Force delete cascade: Delete chamados, their files, and ambientes for this bloco
+            $ambientes = $conn->query("SELECT id_ambiente FROM ambientes WHERE id_bloco = $id_bloco");
+            if ($ambientes && $ambientes->num_rows > 0) {
+                while ($amb = $ambientes->fetch_assoc()) {
+                    $id_ambiente = (int)$amb['id_ambiente'];
+                    
+                    // Limpar chamados do ambiente
+                    $chamados = $conn->query("SELECT id_chamado FROM chamados WHERE id_ambiente = $id_ambiente");
+                    if ($chamados && $chamados->num_rows > 0) {
+                        while ($c = $chamados->fetch_assoc()) {
+                            $id_c = (int)$c['id_chamado'];
+                            
+                            $anexos = $conn->query("SELECT caminho_arquivo FROM chamados_anexos WHERE id_chamado = $id_c");
+                            if ($anexos) while ($a = $anexos->fetch_assoc()) @unlink('../' . $a['caminho_arquivo']);
+                            $conn->query("DELETE FROM chamados_anexos WHERE id_chamado = $id_c");
+                            
+                            $comentarios = $conn->query("SELECT caminho_arquivo FROM chamados_comentarios WHERE id_chamado = $id_c AND caminho_arquivo IS NOT NULL");
+                            if ($comentarios) while ($com = $comentarios->fetch_assoc()) @unlink('../' . $com['caminho_arquivo']);
+                            $conn->query("DELETE FROM chamados_comentarios WHERE id_chamado = $id_c");
+                            
+                            $conn->query("DELETE FROM chamados WHERE id_chamado = $id_c");
+                        }
+                    }
+                    // Deletar o ambiente
+                    $conn->query("DELETE FROM ambientes WHERE id_ambiente = $id_ambiente");
+                }
+            }
         }
 
         if ($conn->query("DELETE FROM blocos WHERE id_bloco = $id_bloco")) {
